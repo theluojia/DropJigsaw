@@ -24,6 +24,9 @@ button{padding:9px 18px;border:none;border-radius:23px;font-size:12px;font-weigh
 #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#ffd700;padding:10px 24px;border-radius:20px;font-size:14px;font-weight:bold;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
 #toast.show{opacity:1}
 #status{display:none}
+#logPanel{display:none;width:100%;max-width:360px;margin-top:6px}
+#logPanel textarea{width:100%;height:160px;background:#0a0a1e;color:#aaccff;border:1px solid #334;border-radius:8px;padding:6px;font:10px monospace;resize:none}
+#lb{background:linear-gradient(135deg,#667788,#445566);font-size:11px;padding:7px 14px}
 </style>
 </head>
 <body>
@@ -37,21 +40,24 @@ button{padding:9px 18px;border:none;border-radius:23px;font-size:12px;font-weigh
 <button id="rb" disabled>Relief</button>
 <button id="nb" disabled>New Game</button>
 <button id="db">Magic Off</button>
+<button id="lb">Log</button>
 </div>
 </div>
 <div id="toast"></div>
+<div id="logPanel"><textarea id="logArea" readonly></textarea></div>
 <script>
 "use strict";
 var C=document.getElementById("c"),X=C.getContext("2d");
 var ST=document.getElementById("status"),TE=document.getElementById("toast");
-var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db");
+var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),LAB=document.getElementById("lb"),LA=document.getElementById("logArea");
 var SE=document.getElementById("score"),ME=document.getElementById("mode");
-var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false;
+var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[];
 var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],imgPool=[],DROPS=[],CF_START=0;
 var DP=window.devicePixelRatio||1,CELL_W=60,CELL_H=90,CELL_R=2/3;
 var CW,CH,BX,BY;
 
 function Piece(i,r,c){this.i=i;this.r=r;this.c=c}
+function L(s){var t=new Date().toISOString().slice(11,23);var m=t+" "+s;LOG.push(m);if(LA){LA.value=LOG.join("\n");LA.scrollTop=LA.scrollHeight}console.log(m)}
 function log(s){ST.textContent=s;console.log(s)}
 
 function makeFallback(idx){
@@ -172,12 +178,12 @@ function gravity(){
  }
  for(var c=0;c<SZ;c++)for(var r=0;r<SZ;r++)if(BD[r][c]){
   var k=BD[r][c].i+"."+BD[r][c].r+"."+BD[r][c].c,old=moved[k];
-  if(old&&old.r!==r)DROPS.push({key:k,col:c,fromR:old.r,toR:r,prog:0,spd:0.08+Math.random()*0.04})
+  if(old&&old.r!==r){L("gravity drop "+k+" col="+c+" from row "+old.r+" to "+r);DROPS.push({key:k,col:c,fromR:old.r,toR:r,prog:0,spd:0.08+Math.random()*0.04})}
  }
 }
 async function init(sz){
  if(sz)SZ=sz;
- GO=false;RU=3;CC=0;SV=0;DR=null;PS=null;CN=[];PT=[];SH=[];CA=[],CF=[],CF_START=0;DROPS=[];
+ GO=false;RU=3;CC=0;SV=0;DR=null;PS=null;CN=[];PT=[];SH=[];CA=[],CF=[],CF_START=0;DROPS=[];LOG=[];if(LA)LA.value="";
  NB.disabled=true;RB.disabled=true;
  resize();
  // Calculate queue sizes per column (4, 6, or 8 random)
@@ -213,7 +219,7 @@ async function init(sz){
  layout();
  updateConns();updateUI();render();
  NB.disabled=false;RB.disabled=false;
- log("ready")
+ L("init SZ="+SZ+" Q="+QQ.map(function(q){return q.length}).join(",")+" TI="+TI);log("ready")
 }
 
 // ===== Drag =====
@@ -232,6 +238,7 @@ function startDrag(x,y){
  if(DR||GO)return;
  if(PS){PS=null;SV-=100}
  var cl=cellAt(x,y);if(!cl||!BD[cl.r][cl.c])return;
+ L("drag start at ("+cl.r+","+cl.c+") piece="+BD[cl.r][cl.c].i+":"+(BD[cl.r][cl.c].r*2+BD[cl.r][cl.c].c+1));
  MX=x;MY=y;
  var grp=findGroup(cl.r,cl.c);
  if(grp&&grp.n>=2&&grp.n<=3){
@@ -241,6 +248,7 @@ function startDrag(x,y){
    items.push({piece:BD[pos.r][pos.c],r:pos.r,c:pos.c,px:BX+pos.c*CELL_W+CELL_W/2,py:BY+pos.r*CELL_H+CELL_H/2});
    BD[pos.r][pos.c]=null
   }
+  L("drag GROUP size="+items.length+" anchor at ("+items[0].r+","+items[0].c+")");
   DR={type:"group",items:items,sx:x,sy:y,_moved:false}
  }else{
   DR={type:"single",p:BD[cl.r][cl.c],fr:cl.r,fc:cl.c,_moved:false};
@@ -255,7 +263,9 @@ function endDrag(x,y){
  DR=null;
  updateConns();
  completeGroups();
- updateConns();updateUI();
+ updateConns();
+ if(!PS){gravity();updateConns()}
+ updateUI();
  if(SH.length>0||PT.length>0||CA.length>0||CF.length>0||DROPS.length>0||PS)requestAnimationFrame(animLoop);else render();
  checkEnd()
 }
@@ -265,6 +275,7 @@ function endSingle(x,y){
  if(!tc){BD[DR.fr][DR.fc]=DR.p;return}
  if(tc.r===DR.fr&&tc.c===DR.fc){BD[DR.fr][DR.fc]=DR.p;return}
  var tp=BD[tc.r][tc.c];
+ var tp=BD[tc.r][tc.c];L("swap single ("+DR.fr+","+DR.fc+")<->("+tc.r+","+tc.c+")");
  BD[DR.fr][DR.fc]=tp;
  BD[tc.r][tc.c]=DR.p;
  DR._moved=true
@@ -299,6 +310,7 @@ function endGroup(x,y){
   if(!tg){BD[sr][sc]=saved[si];si++}
  }
  if(si<saved.length){for(var r=0;r<SZ&&si<saved.length;r++)for(var c=0;c<SZ;c++)if(!BD[r][c]){BD[r][c]=saved[si];si++;break}}
+ L("group swapped");
  DR._moved=true
 }
 
@@ -315,6 +327,7 @@ function findComplete(){
 
 function completeGroups(){ var gs=findComplete();if(gs.length===0)return;
  var grp=gs[0];
+ L("COMPLETE image="+grp.i+" at ("+grp.p[0].r+","+grp.p[0].c+")");
  PS={time:Date.now(),group:grp};
  SV+=100
 }
@@ -361,6 +374,7 @@ function useRelief(){
  var bp=BD[tr][tc],qpiece=QQ[qp.c].splice(qp.i,1)[0];
  BD[tr][tc]=qpiece;QQ[qp.c].push(bp);
  updateConns();completeGroups();updateUI();render();
+ L("RELIEF used img="+tg.i+" missing=("+ms.r+","+ms.c+") from Q col="+qp.c+" swapped at ("+tr+","+tc+")");
  toast("Relief!");checkEnd()
 }
 
@@ -387,6 +401,7 @@ function checkEnd(){
    decay:1/(120+Math.random()*120)
   })
  }
+ L("GAME END score="+SV+" clears="+CC);
  toast("Congratulations!");updateUI();render()
 }
 
@@ -457,6 +472,7 @@ function animLoop(){
   var minC=grp.p[0].c,maxC=grp.p[0].c,minR=grp.p[0].r,maxR=grp.p[0].r;
   for(var p=1;p<grp.p.length;p++){if(grp.p[p].c<minC)minC=grp.p[p].c;if(grp.p[p].c>maxC)maxC=grp.p[p].c;if(grp.p[p].r<minR)minR=grp.p[p].r;if(grp.p[p].r>maxR)maxR=grp.p[p].r}
   CA.push({x:BX+minC*CELL_W+(maxC-minC+1)*CELL_W/2,y:BY+minR*CELL_H+(maxR-minR+1)*CELL_H/2,r:CELL_W,a:1,t:0,i:grp.i});
+  L("ELIMINATED image="+grp.i+" CC="+(CC+1));
   CC++;gravity();updateConns();PS=null;completeGroups()
  }
  for(var i=SH.length-1;i>=0;i--){var s=SH[i];s.x+=s.vx;s.y+=s.vy;s.vy+=0.15;s.rot+=s.rs;s.life-=s.decay;if(s.life<=0)SH.splice(i,1)}
@@ -746,6 +762,7 @@ NB.addEventListener("click",function(){
 window.addEventListener("resize",function(){if(!DR){resize();layout();render()}});
 window.addEventListener("keydown",function(e){if(e.key==="r"){if(canRelief())useRelief()}if(e.key==="n")NB.click()});
 
+LAB.addEventListener("click",function(){var p=document.getElementById("logPanel");p.style.display=p.style.display==="none"?"block":"none"});
 DBB.addEventListener("click",function(){
  DB=!DB;DBB.textContent=DB?"Magic On":"Magic Off";
  if(DB)DBB.classList.add("on");else DBB.classList.remove("on");
