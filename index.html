@@ -26,7 +26,6 @@ button{padding:9px 18px;border:none;border-radius:23px;font-size:12px;font-weigh
 #status{display:none}
 #logPanel{display:none;width:100%;max-width:360px;margin-top:6px}
 #logPanel textarea{width:100%;height:160px;background:#0a0a1e;color:#aaccff;border:1px solid #334;border-radius:8px;padding:6px;font:10px monospace;resize:none}
-#lb{background:linear-gradient(135deg,#667788,#445566);font-size:11px;padding:7px 14px}
 </style>
 </head>
 <body>
@@ -40,7 +39,6 @@ button{padding:9px 18px;border:none;border-radius:23px;font-size:12px;font-weigh
 <button id="rb" disabled>Relief</button>
 <button id="nb" disabled>New Game</button>
 <button id="db">Magic Off</button>
-<button id="lb">Log</button>
 </div>
 </div>
 <div id="toast"></div>
@@ -49,7 +47,7 @@ button{padding:9px 18px;border:none;border-radius:23px;font-size:12px;font-weigh
 "use strict";
 var C=document.getElementById("c"),X=C.getContext("2d");
 var ST=document.getElementById("status"),TE=document.getElementById("toast");
-var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),LAB=document.getElementById("lb"),LA=document.getElementById("logArea");
+var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),LA=document.getElementById("logArea");
 var SE=document.getElementById("score"),ME=document.getElementById("mode");
 var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[];
 var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],imgPool=[],DROPS=[],CF_START=0;
@@ -402,7 +400,7 @@ function checkEnd(){
   })
  }
  L("GAME END score="+SV+" clears="+CC);
- toast("Congratulations!");updateUI();render()
+ updateUI();render()
 }
 
 function updateUI(){
@@ -503,9 +501,9 @@ function drawPiece(r,c,p){
  X.strokeStyle="rgba(255,255,255,0.15)";X.lineWidth=1;
  X.beginPath();rr(x+3,y+3,CELL_W-6,CELL_H-6,3);X.stroke()
   // Debug: piece label
-  if(DB){X.fillStyle="rgba(255,255,255,0.85)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";
+  if(DB){X.shadowColor="rgba(0,0,0,0.8)";X.shadowBlur=3;X.fillStyle="rgba(255,255,255,0.95)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";
   X.textAlign="right";X.textBaseline="bottom";
-  var pn=p.r*2+p.c+1;X.fillText(p.i+":"+pn,x+CELL_W-5,y+CELL_H-2)}
+  var pn=p.r*2+p.c+1;X.fillText(p.i+":"+pn,x+CELL_W-5,y+CELL_H-2);X.shadowBlur=0}
 }
 
 function drawConnsO(){
@@ -531,7 +529,7 @@ function drawConnsO(){
    X.beginPath();rr(x-eL,y-eT,CELL_W+eL+eR,CELL_H+eT+eB,5);X.clip();
    X.drawImage(img,piece.c*pw,piece.r*ph,pw,ph,x-eL,y-eT,CELL_W+eL+eR,CELL_H+eT+eB);
    X.restore();
-  if(DB){X.fillStyle="rgba(255,255,255,0.85)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";X.textAlign="right";X.textBaseline="bottom";X.fillText(piece.i+":"+(piece.r*2+piece.c+1),x+CELL_W-5,y+CELL_H-2)}
+  if(DB){X.shadowColor="rgba(0,0,0,0.8)";X.shadowBlur=3;X.fillStyle="rgba(255,255,255,0.95)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";X.textAlign="right";X.textBaseline="bottom";X.fillText(piece.i+":"+(piece.r*2+piece.c+1),x+CELL_W-5,y+CELL_H-2);X.shadowBlur=0}
   }
   // Group border
   var minC=CN[g].p[0].c,maxC=CN[g].p[0].c,minR=CN[g].p[0].r,maxR=CN[g].p[0].r;
@@ -581,9 +579,9 @@ function drawPieceAt(c,y,p){
  X.strokeStyle="rgba(255,255,255,0.15)";X.lineWidth=1;
  X.beginPath();rr(x+3,y+3,CELL_W-6,CELL_H-6,3);X.stroke();
  // Debug label
- if(DB){X.fillStyle="rgba(255,255,255,0.85)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";
+ if(DB){X.shadowColor="rgba(0,0,0,0.8)";X.shadowBlur=3;X.fillStyle="rgba(255,255,255,0.95)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";
  X.textAlign="right";X.textBaseline="bottom";
- var pn=p.r*2+p.c+1;X.fillText(p.i+":"+pn,x+CELL_W-5,y+CELL_H-2)}
+ var pn=p.r*2+p.c+1;X.fillText(p.i+":"+pn,x+CELL_W-5,y+CELL_H-2);X.shadowBlur=0}
 }
 function drawGrid(){
  X.strokeStyle="rgba(255,255,255,0.08)";X.lineWidth=1;
@@ -639,7 +637,7 @@ function drawDragged(){
    X.strokeStyle="rgba(255,255,255,0.6)";X.lineWidth=2;
    X.beginPath();rr(cx-CELL_W/2,cy-CELL_H/2,CELL_W,CELL_H,4);X.stroke();
    X.restore();
-  if(DB){X.fillStyle="rgba(255,255,255,0.85)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";X.textAlign="right";X.textBaseline="bottom";X.fillText(piece.i+":"+(piece.r*2+piece.c+1),x+CELL_W-5,y+CELL_H-2)}
+  if(DB){X.shadowColor="rgba(0,0,0,0.8)";X.shadowBlur=3;X.fillStyle="rgba(255,255,255,0.95)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";X.textAlign="right";X.textBaseline="bottom";X.fillText(piece.i+":"+(piece.r*2+piece.c+1),x+CELL_W-5,y+CELL_H-2);X.shadowBlur=0}
   }
   X.globalAlpha=1
  }else{
@@ -733,13 +731,11 @@ function drawEnd(){
  var bx=BX+2,by=BY+2,bw=SZ*CELL_W-4,bh=SZ*CELL_H-4;
  X.fillStyle="rgba(0,0,0,"+(0.4+0.3*et)+")";
  X.beginPath();rr(bx,by,bw,bh,6);X.fill();
- if(e>800){
-  X.globalAlpha=Math.min(1,(e-800)/700);
+ if(e>0){
+  X.globalAlpha=Math.min(1,e/600);
   var cx=bx+bw/2,cy=by+bh/2;
   X.fillStyle="#ffd700";X.font="bold 28px Arial";X.textAlign="center";
   X.fillText("Congratulations!",cx,cy-8);
-  X.fillStyle="#fff";X.font="15px Arial";
-  X.fillText("Score: "+SV+"  "+SZ+"x"+SZ,cx,cy+26);
   X.globalAlpha=1
  }
 }
@@ -762,7 +758,7 @@ NB.addEventListener("click",function(){
 window.addEventListener("resize",function(){if(!DR){resize();layout();render()}});
 window.addEventListener("keydown",function(e){if(e.key==="r"){if(canRelief())useRelief()}if(e.key==="n")NB.click()});
 
-LAB.addEventListener("click",function(){var p=document.getElementById("logPanel");p.style.display=p.style.display==="none"?"block":"none"});
+document.querySelector("h1").addEventListener("dblclick",function(){var p=document.getElementById("logPanel");p.style.display=p.style.display!=="block"?"block":"none"});
 DBB.addEventListener("click",function(){
  DB=!DB;DBB.textContent=DB?"Magic On":"Magic Off";
  if(DB)DBB.classList.add("on");else DBB.classList.remove("on");
