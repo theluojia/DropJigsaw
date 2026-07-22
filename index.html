@@ -537,13 +537,35 @@ function drawConnsO(){
    if(CN[g].p[p].c<minC)minC=CN[g].p[p].c;if(CN[g].p[p].c>maxC)maxC=CN[g].p[p].c;
    if(CN[g].p[p].r<minR)minR=CN[g].p[p].r;if(CN[g].p[p].r>maxR)maxR=CN[g].p[p].r
   }
-  var gx=BX+minC*CELL_W,gy=BY+minR*CELL_H,gw=(maxC-minC+1)*CELL_W,gh=(maxR-minR+1)*CELL_H;
-  X.fillStyle="hsla("+H+",80%,65%,"+(a*0.15)+")";
-  X.beginPath();rr(gx,gy,gw,gh,6);X.fill();
-  X.strokeStyle="hsla("+H+",80%,65%,"+a+")";
-  X.lineWidth=CN[g].n===3?5:3.5;
-  X.beginPath();rr(gx+1.5,gy+1.5,gw-3,gh-3,6);X.stroke()
- }
+  var isL=CN[g].n===3&&(maxC-minC===1)&&(maxR-minR===1);
+  if(isL){
+   var has2={};for(var p=0;p<CN[g].p.length;p++)has2[CN[g].p[p].r+","+CN[g].p[p].c]=true;
+   var mR=-1,mC=-1;
+   for(var tr=minR;tr<=maxR;tr++)for(var tc=minC;tc<=maxC;tc++)if(!has2[tr+","+tc]){mR=tr;mC=tc}
+   var pad=2;
+   var L=BX+minC*CELL_W,R=BX+(maxC+1)*CELL_W,T=BY+minR*CELL_H,B=BY+(maxR+1)*CELL_H;
+   var mx=BX+(minC+1)*CELL_W,my=BY+(minR+1)*CELL_H;
+   X.fillStyle="hsla("+H+",80%,65%,"+(a*0.15)+")";
+   for(var p=0;p<CN[g].p.length;p++){
+    var pos=CN[g].p[p];
+    X.beginPath();rr(BX+pos.c*CELL_W+2,BY+pos.r*CELL_H+2,CELL_W-4,CELL_H-4,4);X.fill()
+   }
+   X.strokeStyle="hsla("+H+",80%,65%,"+a+")";
+   X.lineWidth=5;
+   X.beginPath();
+   if(mR===maxR&&mC===maxC){X.moveTo(L+pad,T+pad);X.lineTo(R-pad,T+pad);X.lineTo(R-pad,my-pad);X.lineTo(mx+pad,my-pad);X.lineTo(mx+pad,B-pad);X.lineTo(L+pad,B-pad);X.closePath()}
+   else if(mR===maxR&&mC===minC){X.moveTo(R-pad,T+pad);X.lineTo(L+pad,T+pad);X.lineTo(L+pad,my-pad);X.lineTo(mx-pad,my-pad);X.lineTo(mx-pad,B-pad);X.lineTo(R-pad,B-pad);X.closePath()}
+   else if(mR===minR&&mC===maxC){X.moveTo(L+pad,B-pad);X.lineTo(R-pad,B-pad);X.lineTo(R-pad,my+pad);X.lineTo(mx+pad,my+pad);X.lineTo(mx+pad,T-pad);X.lineTo(L+pad,T-pad);X.closePath()}
+   else{X.moveTo(R-pad,B-pad);X.lineTo(L+pad,B-pad);X.lineTo(L+pad,my+pad);X.lineTo(mx-pad,my+pad);X.lineTo(mx-pad,T-pad);X.lineTo(R-pad,T-pad);X.closePath()}
+   X.stroke()
+  }else{
+   var gx=BX+minC*CELL_W,gy=BY+minR*CELL_H,gw=(maxC-minC+1)*CELL_W,gh=(maxR-minR+1)*CELL_H;
+   X.fillStyle="hsla("+H+",80%,65%,"+(a*0.15)+")";
+   X.beginPath();rr(gx,gy,gw,gh,6);X.fill();
+   X.strokeStyle="hsla("+H+",80%,65%,"+a+")";
+   X.lineWidth=CN[g].n===3?5:3.5;
+   X.beginPath();rr(gx+1.5,gy+1.5,gw-3,gh-3,6);X.stroke()
+  } }
 }
 
 
