@@ -2,24 +2,21 @@
   "name": "Drop Jigsaw",
   "short_name": "DropJigsaw",
   "description": "A relaxing jigsaw puzzle game",
-  "start_url": "/DropJigsaw/",
-  "scope": "/DropJigsaw/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#6c5ce7",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/DropJigsaw/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "/DropJigsaw/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
