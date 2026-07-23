@@ -89,9 +89,9 @@ function loadImg(url,timeout){timeout=timeout||6000;
 
 async function pickImgs(n){
  log("loading "+n+" images...");
- var nums=[];for(var i=1;i<=500;i++)nums.push(i);
+ var nums=[];for(var i=1;i<=400;i++)nums.push(i);
  for(var i=nums.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=nums[i];nums[i]=nums[j];nums[j]=t}
- var imgs=[],tried=0,maxTry=Math.min(500,n+20);
+ var imgs=[],tried=0,maxTry=Math.min(400,n+20);
  for(var b=0;b<maxTry&&imgs.length<n;b+=6){
   var batch=[];
   for(var i=b;i<Math.min(b+6,maxTry)&&(tried+imgs.length)<n+10;i++){
