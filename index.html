@@ -6,7 +6,7 @@
 <title>Drop Jigsaw</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#1a1a2e;font-family:"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden;user-select:none;-webkit-user-select:none}
+body{background:#1a1a2e;font-family:"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:center;min-height:100dvh;overflow:hidden;user-select:none;-webkit-user-select:none}
 #app{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px}
 h1{color:#e0e0ff;font-size:20px;text-shadow:0 0 20px rgba(100,140,255,0.5);margin:0}
 #info{color:#8899cc;font-size:12px;display:flex;gap:14px}
@@ -61,7 +61,7 @@ var ST=document.getElementById("status"),TE=document.getElementById("toast");
 var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),SB=document.getElementById("sb"),LA=document.getElementById("logArea"),AD=document.getElementById("adrag"),AE=document.getElementById("aelim"),AC2=document.getElementById("acele"),AB=document.getElementById("abgm");
 var SE=document.getElementById("score"),ME=document.getElementById("mode");
 var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[],SND=true;
-var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],imgPool=[],DROPS=[],CF_START=0;
+var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],DROPS=[],CF_START=0,CI=null,CB=null;
 var DP=window.devicePixelRatio||1,CELL_W=60,CELL_H=90,CELL_R=2/3;
 var CW,CH,BX,BY;
 
@@ -86,30 +86,22 @@ function loadImg(url,timeout){timeout=timeout||6000;
   img.src=url
  })}
 
-async function preload(){
- if(imgPool.length>0)return imgPool.length;
- log("loading images...");
- var loaded=0,miss=0;
- for(var b=1;b<=300;b+=8){
-  var batch=[];
-  for(var i=b;i<b+8&&i<=300;i++)batch.push(loadImg("images/"+i+".jpg",4000).then(function(img){imgPool.push(img);loaded++;return 1}).catch(function(){return 0}));
-  var r=await Promise.all(batch),ok=0;
-  for(var j=0;j<r.length;j++)if(r[j])ok++;
-  if(ok===0){miss++;if(miss>=3)break}else miss=0;
-  if(loaded>0&&loaded%40===0)log("loaded "+loaded)};
- if(loaded===0){log("no images, using patterns");return 0}
- log("image pool: "+loaded);return loaded
-}
-
 async function pickImgs(n){
- var c=await preload();
- if(c===0){var imgs=[];for(var i=0;i<n;i++)imgs.push(makeFallback(i));return imgs}
- var imgs=[];
- if(imgPool.length>=n){
-  var idx=[];for(var i=0;i<imgPool.length;i++)idx.push(i);
-  for(var i=idx.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=idx[i];idx[i]=idx[j];idx[j]=t}
-  for(var i=0;i<n;i++)imgs.push(imgPool[idx[i]])}
- else{for(var i=0;i<imgPool.length;i++)imgs.push(imgPool[i]);for(var i=imgs.length;i<n;i++)imgs.push(makeFallback(i))}
+ log("loading "+n+" images...");
+ var nums=[];for(var i=1;i<=500;i++)nums.push(i);
+ for(var i=nums.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=nums[i];nums[i]=nums[j];nums[j]=t}
+ var imgs=[],tried=0,maxTry=Math.min(500,n+20);
+ for(var b=0;b<maxTry&&imgs.length<n;b+=6){
+  var batch=[];
+  for(var i=b;i<Math.min(b+6,maxTry)&&(tried+imgs.length)<n+10;i++){
+   var ni=nums[tried];tried++;
+   batch.push(loadImg("images/"+ni+".jpg",3000).then(function(img){imgs.push(img);return 1}).catch(function(){return 0}))
+  }
+  await Promise.all(batch)
+ }
+ if(imgs.length===0){for(var i=0;i<n;i++)imgs.push(makeFallback(i))}
+ else while(imgs.length<n)imgs.push(makeFallback(imgs.length));
+ log("loaded "+imgs.length+" images");
  return imgs
 }
 
@@ -190,6 +182,17 @@ function gravity(){
   if(old&&old.r!==r){L("gravity drop "+k+" col="+c+" from row "+old.r+" to "+r);DROPS.push({key:k,col:c,fromR:old.r,toR:r,prog:0,spd:0.08+Math.random()*0.04})}
  }
 }
+
+// Card back image loader - called per game
+function loadCardBack(){
+ var cn=Math.floor(Math.random()*9)+1;
+ var img=new Image();
+ img.onload=function(){CB=img;render();console.log("card back loaded:",img.naturalWidth,"x",img.naturalHeight)};
+ img.onerror=function(){console.error("card back failed, retrying...");setTimeout(loadCardBack,500)};
+ img.src="images/utils/card_"+cn+".png"
+}
+loadCardBack();
+
 async function init(sz){
  if(sz)SZ=sz;
  GO=false;RU=3;CC=0;SV=0;DR=null;PS=null;CN=[];PT=[];SH=[];CA=[],CF=[],CF_START=0;DROPS=[];LOG=[];if(LA)LA.value="";
@@ -217,6 +220,35 @@ async function init(sz){
  BD=[];
  for(var r=0;r<SZ;r++){BD[r]=[];for(var c=0;c<SZ;c++)BD[r][c]=null}
  for(var i=0;i<SZ*SZ;i++)BD[Math.floor(i/SZ)][i%SZ]=pieces[i];
+ // Ensure board has minimum complete images (4x4:1, 6x6:3)
+ var need=SZ===4?1:3,boardP=pieces.slice(0,SZ*SZ),queueP=pieces.slice(SZ*SZ);
+ var boardImgs={},queueImgs={};
+ for(var i=0;i<boardP.length;i++){var ii=boardP[i].i;if(!boardImgs[ii])boardImgs[ii]=[];boardImgs[ii].push(i)}
+ for(var i=0;i<queueP.length;i++){var ii=queueP[i].i;if(!queueImgs[ii])queueImgs[ii]=[];queueImgs[ii].push(i)}
+ var got=0;
+ for(var k in boardImgs)if(boardImgs[k].length===4)got++;
+ for(var k in queueImgs){
+  if(got>=need)break;
+  if(queueImgs[k].length===4&&(!boardImgs[k]||boardImgs[k].length<4)){
+   // Swap this complete image from queue into board, take random incomplete images out
+   var swapOut=[];
+   for(var bk in boardImgs){if(boardImgs[bk].length<4&&boardImgs[bk].length>0&&swapOut.length<4){for(var si=0;si<boardImgs[bk].length&&swapOut.length<4;si++)swapOut.push(boardImgs[bk][si])}}
+   for(var si=0;si<4&&si<swapOut.length&&si<queueImgs[k].length;si++){
+    var bp=swapOut[si],qp=queueImgs[k][si]+SZ*SZ;
+    var t=pieces[bp];pieces[bp]=pieces[qp];pieces[qp]=t
+   }
+   // Refill board
+   for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)BD[r][c]=null;
+   for(var i=0;i<SZ*SZ;i++)BD[Math.floor(i/SZ)][i%SZ]=pieces[i];
+   // Recount
+   boardP=pieces.slice(0,SZ*SZ);boardImgs={};
+   for(var i=0;i<boardP.length;i++){var ii=boardP[i].i;if(!boardImgs[ii])boardImgs[ii]=[];boardImgs[ii].push(i)}
+   got=0;for(var k2 in boardImgs)if(boardImgs[k2].length===4)got++;
+   queueP=pieces.slice(SZ*SZ);queueImgs={};
+   for(var i=0;i<queueP.length;i++){var ii=queueP[i].i;if(!queueImgs[ii])queueImgs[ii]=[];queueImgs[ii].push(i)}
+  }
+ }
+ L("board has "+got+" complete images (need "+need+")");
  // Queues: distribute remaining pieces
  QQ=[];for(var c=0;c<SZ;c++)QQ[c]=[];
  var pi=SZ*SZ;
@@ -228,7 +260,7 @@ async function init(sz){
  layout();
  updateConns();updateUI();render();
  NB.disabled=false;RB.disabled=false;
- L("init SZ="+SZ+" Q="+QQ.map(function(q){return q.length}).join(",")+" TI="+TI);log("ready");initSound()
+ L("init SZ="+SZ+" Q="+QQ.map(function(q){return q.length}).join(",")+" TI="+TI);log("ready");initSound();loadCardBack();
 }
 
 // ===== Drag =====
@@ -691,27 +723,22 @@ function drawDragged(){
 function drawQueues(){
  var maxQ=0;for(var c=0;c<SZ;c++)if(QQ[c].length>maxQ)maxQ=QQ[c].length;
  if(maxQ===0)return;
- var qW=CELL_W-4,qH=CELL_H,step=qH*0.12;
+ var qW=CELL_W-4,step=CELL_H*0.12;
  for(var c=0;c<SZ;c++){
   var cn=QQ[c].length;if(cn===0)continue;
   var qX=BX+c*CELL_W+2;
-  // Bottom-aligned: bottom card touches board top
-  var baseY=BY-2-qH;
+  var baseY=BY-2-CELL_H;
   for(var vi=0;vi<cn;vi++){
    var dy=baseY-vi*step;
-   X.fillStyle="#1a1a3e";
-   X.beginPath();rr(qX,dy,qW,qH,3);X.fill();
-   X.strokeStyle="rgba(255,255,255,0.25)";X.lineWidth=0.8;
-   X.beginPath();rr(qX,dy,qW,qH,3);X.stroke();
-   X.strokeStyle="rgba(255,255,255,0.07)";X.lineWidth=0.4;
-   var hs=(qH-4)/6;
-   for(var hh=0;hh<6;hh++){
-    var hy=dy+4+hh*hs;
-    X.beginPath();X.moveTo(qX+4,hy);X.lineTo(qX+qW-4,hy);X.stroke()
+   X.save();X.beginPath();rr(qX+1,dy+1,qW-2,CELL_H-2,4);X.clip();
+   if(CB&&CB.complete&&CB.naturalWidth>0){
+    X.drawImage(CB,qX+1,dy+1,qW-2,CELL_H-2)
+   }else{
+    X.fillStyle="#1a1a3e";X.fillRect(qX+2,dy+2,qW-4,CELL_H-4)
    }
-   var cx2=qX+qW/2,cy2=dy+qH/2,ds=Math.min(qW,qH)*0.2;
-   X.strokeStyle="rgba(255,255,255,0.12)";X.lineWidth=0.6;
-   X.beginPath();X.moveTo(cx2,cy2-ds);X.lineTo(cx2+ds,cy2);X.lineTo(cx2,cy2+ds);X.lineTo(cx2-ds,cy2);X.closePath();X.stroke()
+   X.restore();
+   X.strokeStyle="rgba(255,255,255,0.25)";X.lineWidth=0.8;
+   X.beginPath();rr(qX+1,dy+1,qW-2,CELL_H-2,3);X.stroke()
   }
  }
 }
@@ -793,7 +820,8 @@ window.addEventListener("resize",function(){if(!DR){resize();layout();render()}}
 function initSound(){
  SND=localStorage.getItem("soundEnabled")!=="false";
  SB.textContent=SND?"Sound On":"Sound Off";
- if(!SND)SB.classList.add("muted");else SB.classList.remove("muted")
+ if(!SND)SB.classList.add("muted");else SB.classList.remove("muted");
+ AB.volume=0.64;AD.volume=1.5;AE.volume=1.5;AC2.volume=1.5
 }
 function playSound(a){
  if(!SND)return;
@@ -821,6 +849,7 @@ DBB.addEventListener("click",function(){
 // Start
 log("starting...");
 init(SZ);
+
 </script>
 </body>
 </html>
