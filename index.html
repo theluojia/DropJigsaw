@@ -13,12 +13,14 @@ h1{color:#e0e0ff;font-size:20px;text-shadow:0 0 20px rgba(100,140,255,0.5);margi
 #score{color:#ffd700;font-weight:bold}
 canvas{border-radius:12px;box-shadow:0 0 30px rgba(60,100,200,0.3);cursor:grab}
 canvas:active{cursor:grabbing}
-#ctls{display:flex;gap:10px}
-button{padding:9px 18px;border:none;border-radius:23px;font-size:12px;font-weight:bold;cursor:pointer;color:#fff}
+#ctls{display:flex;flex-direction:column;align-items:center;gap:6px;width:240px}
+button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weight:bold;cursor:pointer;color:#fff}
 #rb{background:linear-gradient(135deg,#ff6b6b,#ee5a24)}
 #rb:disabled{background:#444;color:#888}
-#nb{background:linear-gradient(135deg,#4ecdc4,#44bd9e)}
+#nb{width:100%;padding:11px 0;font-size:14px;background:linear-gradient(135deg,#4ecdc4,#44bd9e)}
 #nb:disabled{background:#555;color:#999}
+.row2{display:flex;gap:6px;width:100%}
+.row2 button{flex:1}
 #db{background:linear-gradient(135deg,#a0a0c0,#707090)}
 #db.on{background:linear-gradient(135deg,#ffd700,#ff8c00)}
 #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#ffd700;padding:10px 24px;border-radius:20px;font-size:14px;font-weight:bold;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
@@ -26,6 +28,8 @@ button{padding:9px 18px;border:none;border-radius:23px;font-size:12px;font-weigh
 #status{display:none}
 #logPanel{display:none;width:100%;max-width:360px;margin-top:6px}
 #logPanel textarea{width:100%;height:160px;background:#0a0a1e;color:#aaccff;border:1px solid #334;border-radius:8px;padding:6px;font:10px monospace;resize:none}
+#sb{background:linear-gradient(135deg,#4caf50,#2e7d32)}
+#sb.muted{background:linear-gradient(135deg,#666,#444)}
 </style>
 </head>
 <body>
@@ -36,20 +40,27 @@ button{padding:9px 18px;border:none;border-radius:23px;font-size:12px;font-weigh
 <canvas id="c"></canvas>
 <div id="status">loading...</div>
 <div id="ctls">
-<button id="rb" disabled>Relief</button>
 <button id="nb" disabled>New Game</button>
+<div class="row2">
+<button id="rb" disabled>Relief</button>
 <button id="db">Magic Off</button>
+<button id="sb">Sound On</button>
 </div>
 </div>
+</div>
+<audio id="adrag" src="sounds/drag.mp3" preload="auto"></audio>
+<audio id="aelim" src="sounds/elim.mp3" preload="auto"></audio>
+<audio id="acele" src="sounds/celebrate.mp3" preload="auto"></audio>
+<audio id="abgm" src="sounds/bgm.ogg" preload="auto" loop></audio>
 <div id="toast"></div>
 <div id="logPanel"><textarea id="logArea" readonly></textarea></div>
 <script>
 "use strict";
 var C=document.getElementById("c"),X=C.getContext("2d");
 var ST=document.getElementById("status"),TE=document.getElementById("toast");
-var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),LA=document.getElementById("logArea");
+var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),SB=document.getElementById("sb"),LA=document.getElementById("logArea"),AD=document.getElementById("adrag"),AE=document.getElementById("aelim"),AC2=document.getElementById("acele"),AB=document.getElementById("abgm");
 var SE=document.getElementById("score"),ME=document.getElementById("mode");
-var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[];
+var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[],SND=true;
 var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],imgPool=[],DROPS=[],CF_START=0;
 var DP=window.devicePixelRatio||1,CELL_W=60,CELL_H=90,CELL_R=2/3;
 var CW,CH,BX,BY;
@@ -217,7 +228,7 @@ async function init(sz){
  layout();
  updateConns();updateUI();render();
  NB.disabled=false;RB.disabled=false;
- L("init SZ="+SZ+" Q="+QQ.map(function(q){return q.length}).join(",")+" TI="+TI);log("ready")
+ L("init SZ="+SZ+" Q="+QQ.map(function(q){return q.length}).join(",")+" TI="+TI);log("ready");initSound()
 }
 
 // ===== Drag =====
@@ -237,7 +248,7 @@ function startDrag(x,y){
  if(PS){PS=null;SV-=100}
  var cl=cellAt(x,y);if(!cl||!BD[cl.r][cl.c])return;
  L("drag start at ("+cl.r+","+cl.c+") piece="+BD[cl.r][cl.c].i+":"+(BD[cl.r][cl.c].r*2+BD[cl.r][cl.c].c+1));
- MX=x;MY=y;
+ MX=x;MY=y;playSound(AD);
  var grp=findGroup(cl.r,cl.c);
  if(grp&&grp.n>=2&&grp.n<=3){
   var items=[];
@@ -385,7 +396,7 @@ function isDone(){
 }
 
 function checkEnd(){
- if(!isDone())return;GO=true;CF_START=Date.now();
+ if(!isDone())return;GO=true;CF_START=Date.now();AB.pause();playSound(AC2);
  var colors=["#f59e0b","#ef4444","#22c55e","#3b82f6","#a855f7","#ec4899","#14b8a6","#f97316"];
  for(var i=0;i<60;i++){
   CF.push({
@@ -471,7 +482,7 @@ function animLoop(){
   for(var p=1;p<grp.p.length;p++){if(grp.p[p].c<minC)minC=grp.p[p].c;if(grp.p[p].c>maxC)maxC=grp.p[p].c;if(grp.p[p].r<minR)minR=grp.p[p].r;if(grp.p[p].r>maxR)maxR=grp.p[p].r}
   CA.push({x:BX+minC*CELL_W+(maxC-minC+1)*CELL_W/2,y:BY+minR*CELL_H+(maxR-minR+1)*CELL_H/2,r:CELL_W,a:1,t:0,i:grp.i});
   L("ELIMINATED image="+grp.i+" CC="+(CC+1));
-  CC++;gravity();updateConns();PS=null;completeGroups()
+  CC++;playSound(AE);gravity();updateConns();PS=null;completeGroups()
  }
  for(var i=SH.length-1;i>=0;i--){var s=SH[i];s.x+=s.vx;s.y+=s.vy;s.vy+=0.15;s.rot+=s.rs;s.life-=s.decay;if(s.life<=0)SH.splice(i,1)}
  for(var i=PT.length-1;i>=0;i--){var p=PT[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.1;p.l-=p.d*0.6;if(p.l<=0)PT.splice(i,1)}
@@ -778,6 +789,26 @@ NB.addEventListener("click",function(){
  var ns=SZ===4?6:4;init(ns)
 });
 window.addEventListener("resize",function(){if(!DR){resize();layout();render()}});
+
+function initSound(){
+ SND=localStorage.getItem("soundEnabled")!=="false";
+ SB.textContent=SND?"Sound On":"Sound Off";
+ if(!SND)SB.classList.add("muted");else SB.classList.remove("muted")
+}
+function playSound(a){
+ if(!SND)return;
+ a.currentTime=0;
+ a.play().catch(function(){});
+ if(SND&&AB.paused)AB.play().catch(function(){})
+}
+function toggleSound(){
+ SND=!SND;localStorage.setItem("soundEnabled",SND?"true":"false");
+ SB.textContent=SND?"Sound On":"Sound Off";
+ if(SND){SB.classList.remove("muted");if(!GO)AB.play().catch(function(){})}
+ else{SB.classList.add("muted");AB.pause()}
+}
+SB.addEventListener("click",function(){toggleSound()});
+
 window.addEventListener("keydown",function(e){if(e.key==="r"){if(canRelief())useRelief()}if(e.key==="n")NB.click()});
 
 document.querySelector("h1").addEventListener("dblclick",function(){var p=document.getElementById("logPanel");p.style.display=p.style.display!=="block"?"block":"none"});
