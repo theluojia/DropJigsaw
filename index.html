@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,maximum-scale=1.0,touch-action:none">
 <title>Drop Jigsaw</title>
+<link rel="manifest" href="manifest.json">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#1a1a2e;font-family:"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:center;min-height:100dvh;overflow:hidden;user-select:none;-webkit-user-select:none}
@@ -847,6 +848,7 @@ DBB.addEventListener("click",function(){
 });
 
 // Start
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js")}
 log("starting...");
 init(SZ);
 
