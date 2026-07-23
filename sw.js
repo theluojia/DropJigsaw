@@ -1,5 +1,5 @@
 // Drop Jigsaw Service Worker
-var CACHE = "dropjigsaw-v1";
+var CACHE = "dropjigsaw-v2";
 
 self.addEventListener("install", function(e) {
   e.waitUntil(
