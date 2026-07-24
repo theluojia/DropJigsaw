@@ -32,6 +32,17 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 #logPanel textarea{width:100%;height:160px;background:#0a0a1e;color:#aaccff;border:1px solid #334;border-radius:8px;padding:6px;font:10px monospace;resize:none}
 #sb{background:linear-gradient(135deg,#4caf50,#2e7d32)}
 #sb.muted{background:linear-gradient(135deg,#666,#444)}
+#lb{background:linear-gradient(135deg,#607d8b,#455a64)}
+
+#loader{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,10,30,0.95);z-index:200;flex-direction:column;justify-content:center;align-items:center;gap:20px}
+#loader .bar-bg{width:70%;max-width:300px;height:10px;background:#333;border-radius:5px;overflow:hidden}
+#loader .bar-fg{height:100%;background:linear-gradient(90deg,#6c5ce7,#00cec9);border-radius:5px;transition:width 0.3s}
+#loader .prog-text{color:#ccc;font-size:14px}
+#loader .btns{display:flex;gap:12px}
+#loader .btns button{padding:10px 24px;border:none;border-radius:20px;font-size:14px;cursor:pointer;color:#fff}
+#loader .btns .ld-reload{background:linear-gradient(135deg,#4ecdc4,#44bd9e)}
+#loader .btns .ld-quit{background:linear-gradient(135deg,#ff6b6b,#ee5a24)}
+
 </style>
 </head>
 <body>
@@ -39,6 +50,15 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 <h1>Drop Jigsaw</h1>
 
 <div id="info" style="display:none"><span id="score">0</span><span id="mode"></span></div>
+<div id="loader">
+  <h1 style="color:#e0e0ff;font-size:22px;text-shadow:0 0 20px rgba(100,140,255,0.5)">Drop Jigsaw</h1>
+  <div class="prog-text" id="progText">Preparing puzzle...</div>
+  <div class="bar-bg"><div class="bar-fg" id="progBar" style="width:0%"></div></div>
+  <div class="btns">
+    <button class="ld-reload" id="ldReload">Reload</button>
+    <button class="ld-quit" id="ldQuit">Quit</button>
+  </div>
+</div>
 <canvas id="c"></canvas>
 <div id="status">loading...</div>
 <div id="ctls">
@@ -46,6 +66,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 <div class="row2">
 <button id="rb" disabled>Relief</button>
 <button id="db">Magic Off</button>
+<button id="lb">EN</button>
 <button id="sb">Sound On</button>
 </div>
 </div>
@@ -58,27 +79,41 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 <div id="logPanel"><textarea id="logArea" readonly></textarea></div>
 <script>
 "use strict";
+
+// ==== i18n ====
+var LANG=localStorage.getItem("lang")||"en";
+var TBL={
+ "New Game":{en:"New Game",zh:"新游戏"},
+ "Next":{en:"Next",zh:"下一局"},
+ "Relief":{en:"Relief",zh:"救济"},
+ "Magic Off":{en:"Magic Off",zh:"魔法关"},
+ "Magic On":{en:"Magic On",zh:"魔法开"},
+ "Sound On":{en:"Sound On",zh:"音效开"},
+ "Sound Off":{en:"Sound Off",zh:"音效关"},
+ "EN":{en:"EN",zh:"中文"},
+ "Preparing puzzle...":{en:"Preparing puzzle...",zh:"准备拼图..."},
+ "Loading puzzle...":{en:"Loading puzzle...",zh:"加载拼图..."},
+ "Reload":{en:"Reload",zh:"重新加载"},
+ "Quit":{en:"Quit",zh:"退出"},
+ "Loading ":{en:"Loading ",zh:"加载 "},
+ "Congratulations!":{en:"Congratulations!",zh:"恭喜通关！"},
+ "Relief!":{en:"Relief!",zh:"救济！"}
+};
+function T(k){var e=TBL[k];return e?e[LANG]||e.en:k}
+function setLang(l){LANG=l;localStorage.setItem("lang",l);updateUI();render()}
 var C=document.getElementById("c"),X=C.getContext("2d");
 var ST=document.getElementById("status"),TE=document.getElementById("toast");
-var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),SB=document.getElementById("sb"),LA=document.getElementById("logArea"),AD=document.getElementById("adrag"),AE=document.getElementById("aelim"),AC2=document.getElementById("acele"),AB=document.getElementById("abgm");
+var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),SB=document.getElementById("sb"),LB=document.getElementById("lb"),LA=document.getElementById("logArea"),AD=document.getElementById("adrag"),AE=document.getElementById("aelim"),AC2=document.getElementById("acele"),AB=document.getElementById("abgm");
 var SE=document.getElementById("score"),ME=document.getElementById("mode");
+var LD=document.getElementById("loader"),PB=document.getElementById("progBar"),PTE=document.getElementById("progText"),LDR=document.getElementById("ldReload"),LDQ=document.getElementById("ldQuit");
 var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[],SND=true;
-var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],DROPS=[],CF_START=0,CI=null,CB=null;
+var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],DROPS=[],CF_START=0,CI=null,CB=null,IMGC={},PRE=[],PLOAD=false;
 var DP=window.devicePixelRatio||1,CELL_W=60,CELL_H=90,CELL_R=2/3;
 var CW,CH,BX,BY;
 
 function Piece(i,r,c){this.i=i;this.r=r;this.c=c}
 function L(s){var t=new Date().toISOString().slice(11,23);var m=t+" "+s;LOG.push(m);if(LA){LA.value=LOG.join("\n");LA.scrollTop=LA.scrollHeight}console.log(m)}
 function log(s){ST.textContent=s;console.log(s)}
-
-function makeFallback(idx){
- var W=300,H=450,cv=document.createElement("canvas");cv.width=W;cv.height=H;
- var cx=cv.getContext("2d"),hue=(idx*47+15)%360;
- cx.fillStyle="hsl("+hue+",60%,45%)";cx.fillRect(0,0,W,H);
- cx.fillStyle="hsl("+((hue+180)%360)+",70%,65%)";cx.font="bold 50px Arial";cx.textAlign="center";
- cx.fillText(""+idx,W/2,H/2+15);
- var img=new Image();img.src=cv.toDataURL();return img
-}
 
 function loadImg(url,timeout){timeout=timeout||6000;
  return new Promise(function(ok,fail){
@@ -88,21 +123,51 @@ function loadImg(url,timeout){timeout=timeout||6000;
   img.src=url
  })}
 
-async function pickImgs(n){
+
+function showLoader(msg){
+ LD.style.display="flex";NB.style.display="none";
+ if(msg)PTE.textContent=msg||T("Preparing puzzle...");PB.style.width="0%"
+}
+function hideLoader(){LD.style.display="none";NB.style.display=""}
+function setProgress(cur,total){
+ var pct=Math.round(cur/total*100);
+ PB.style.width=pct+"%";PTE.textContent=T("Loading ")+cur+"/"+total
+}
+var cancelLoad=false;
+LDR.addEventListener("click",function(){cancelLoad=true;hideLoader();init(SZ)});
+LDQ.addEventListener("click",function(){cancelLoad=true;hideLoader();NB.style.display=""});
+
+function preloadNext(){
+ PLOAD=true;
+ var ns=SZ===4?6:4,sz2=ns,qt=[2,3,4][Math.floor(Math.random()*3)],tq2=sz2*qt,tp2=sz2*sz2+tq2;
+ tp2=Math.floor(tp2/4)*4;var n2=tp2/4;
+ log("preloading "+n2+" images for next...");
+ pickImgs(n2).then(function(imgs){
+  PRE=imgs;PLOAD=false;log("preloaded "+imgs.length+" images")
+ }).catch(function(){PLOAD=false})
+}
+
+async function pickImgs(n,onProg){
  log("loading "+n+" images...");
+ cancelLoad=false;
  var nums=[];for(var i=1;i<=400;i++)nums.push(i);
  for(var i=nums.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=nums[i];nums[i]=nums[j];nums[j]=t}
- var imgs=[],tried=0,maxTry=Math.min(400,n+20);
- for(var b=0;b<maxTry&&imgs.length<n;b+=6){
+ var imgs=[],tried=0;
+ while(imgs.length<n&&tried<400&&!cancelLoad){
   var batch=[];
-  for(var i=b;i<Math.min(b+6,maxTry)&&(tried+imgs.length)<n+10;i++){
-   var ni=nums[tried];tried++;
-   batch.push(loadImg("images/"+ni+".jpg",3000).then(function(img){imgs.push(img);return 1}).catch(function(){return 0}))
+  for(var i=0;i<6&&(tried+i)<400&&imgs.length+batch.length<n;i++){
+   var ni=nums[tried+i];
+   if(IMGC[ni]){imgs.push(IMGC[ni]);if(onProg)onProg(imgs.length,n);continue}
+   batch.push({ni:ni})
   }
-  await Promise.all(batch)
+  if(batch.length===0){tried+=i;continue}
+  var results=await Promise.all(batch.map(function(b){
+   return loadImg("images/"+b.ni+".jpg",8000).then(function(img){IMGC[b.ni]=img;imgs.push(img);return 1}).catch(function(){return 0})
+  }));
+  tried+=i;
+  if(onProg)onProg(imgs.length,n)
  }
- if(imgs.length===0){for(var i=0;i<n;i++)imgs.push(makeFallback(i))}
- else while(imgs.length<n)imgs.push(makeFallback(imgs.length));
+ if(cancelLoad&&imgs.length<n)imgs=imgs.slice(0,n);
  log("loaded "+imgs.length+" images");
  return imgs
 }
@@ -206,7 +271,7 @@ async function init(sz){
  var totalPieces=SZ*SZ+totalQ;
  totalPieces=Math.floor(totalPieces/4)*4;
  TI=totalPieces/4;
- IM=await pickImgs(TI);
+ if(PRE.length>=TI){IM=PRE.splice(0,TI)}else{showLoader(T("Loading puzzle..."));IM=await pickImgs(TI,setProgress);hideLoader();if(cancelLoad){cancelLoad=false;return}}
  // Create all pieces
  var pieces=[];
  for(var i=0;i<TI;i++){
@@ -262,7 +327,7 @@ async function init(sz){
  layout();
  updateConns();updateUI();render();
  NB.disabled=false;RB.disabled=false;
- L("init SZ="+SZ+" Q="+QQ.map(function(q){return q.length}).join(",")+" TI="+TI);log("ready");initSound();loadCardBack();
+ L("init SZ="+SZ+" Q="+QQ.map(function(q){return q.length}).join(",")+" TI="+TI);log("ready");initSound();loadCardBack();if(!PLOAD)preloadNext();
 }
 
 // ===== Drag =====
@@ -418,7 +483,7 @@ function useRelief(){
  BD[tr][tc]=qpiece;QQ[qp.c].push(bp);
  updateConns();completeGroups();updateUI();render();
  L("RELIEF used img="+tg.i+" missing=("+ms.r+","+ms.c+") from Q col="+qp.c+" swapped at ("+tr+","+tc+")");
- toast("Relief!");checkEnd()
+ toast(T("Relief!"));checkEnd()
 }
 
 function toast(m){TE.textContent=m;TE.classList.add("show");setTimeout(function(){TE.classList.remove("show")},2000)}
@@ -450,8 +515,11 @@ function checkEnd(){
 
 function updateUI(){
  SE.textContent=SV;ME.textContent=SZ+"x"+SZ;
- RB.disabled=RU<=0||GO;RB.textContent="Relief ("+RU+")";
- NB.disabled=false;NB.textContent=GO?"Next":"New Game"
+ RB.disabled=RU<=0||GO;RB.textContent=T("Relief")+" ("+RU+")";
+ NB.disabled=false;NB.textContent=GO?T("Next"):T("New Game");
+ SB.textContent=SND?T("Sound On"):T("Sound Off");
+ DBB.textContent=DB?T("Magic On"):T("Magic Off");
+ LB.textContent=T("EN")
 }
 
 // ===== Drawing =====
@@ -797,7 +865,7 @@ function drawEnd(){
   X.globalAlpha=Math.min(1,e/600);
   var cx=bx+bw/2,cy=by+bh/2;
   X.fillStyle="#ffd700";X.font="bold 28px Arial";X.textAlign="center";
-  X.fillText("Congratulations!",cx,cy-8);
+  X.fillText(T("Congratulations!"),cx,cy-8);
   X.globalAlpha=1
  }
 }
@@ -821,9 +889,9 @@ window.addEventListener("resize",function(){if(!DR){resize();layout();render()}}
 
 function initSound(){
  SND=localStorage.getItem("soundEnabled")!=="false";
- SB.textContent=SND?"Sound On":"Sound Off";
+ SB.textContent=SND?T("Sound On"):T("Sound Off");LB.textContent=T("EN");
  if(!SND)SB.classList.add("muted");else SB.classList.remove("muted");
- AB.volume=0.64;AD.volume=1.5;AE.volume=1.5;AC2.volume=1.5
+ AB.volume=0.5;AD.volume=2;AE.volume=1.5;AC2.volume=1.5
 }
 function playSound(a){
  if(!SND)return;
@@ -833,11 +901,11 @@ function playSound(a){
 }
 function toggleSound(){
  SND=!SND;localStorage.setItem("soundEnabled",SND?"true":"false");
- SB.textContent=SND?"Sound On":"Sound Off";
+ SB.textContent=SND?T("Sound On"):T("Sound Off");LB.textContent=T("EN");
  if(SND){SB.classList.remove("muted");if(!GO)AB.play().catch(function(){})}
  else{SB.classList.add("muted");AB.pause()}
 }
-SB.addEventListener("click",function(){toggleSound()});
+SB.addEventListener("click",function(){toggleSound()});LB.addEventListener("click",function(){setLang(LANG==="en"?"zh":"en")});
 
 window.addEventListener("keydown",function(e){if(e.key==="r"){if(canRelief())useRelief()}if(e.key==="n")NB.click()});
 
