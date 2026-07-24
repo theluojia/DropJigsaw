@@ -330,13 +330,6 @@ async function init(sz){
     if(!BD[r][c]&&remIdx<remaining.length)BD[r][c]=remaining[remIdx++]
    }
   }
-  // Shuffle board positions (keep guaranteed sets intact by not reshuffling)
-  // Actually re-shuffle all board pieces for randomness
-  var allBoard=[];
-  for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(BD[r][c])allBoard.push(BD[r][c]);
-  for(var i=allBoard.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=allBoard[i];allBoard[i]=allBoard[j];allBoard[j]=t}
-  var ai=0;
-  for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)BD[r][c]=allBoard[ai++];
   // Remaining pieces go to queue
   var queuePieces=[];
   for(var i=0;i<pieces.length;i++){
@@ -402,7 +395,7 @@ function endDrag(x,y){
  updateConns();
  completeGroups();
  updateConns();
- if(!PS){gravity();updateConns()}
+ if(!PS){gravity();updateConns();completeGroups()}
  updateUI();
  if(SH.length>0||PT.length>0||CA.length>0||CF.length>0||DROPS.length>0||PS)requestAnimationFrame(animLoop);else render();
  checkEnd()
