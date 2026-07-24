@@ -274,58 +274,87 @@ async function init(sz){
  TI=totalPieces/4;
  if(PRE.length>=TI){IM=PRE.splice(0,TI)}else{showLoader(T("Loading puzzle..."));IM=await pickImgs(TI,setProgress);hideLoader();if(cancelLoad){cancelLoad=false;return}}
  // Create all pieces
- var pieces=[];
- for(var i=0;i<TI;i++){
-  for(var r=0;r<2;r++){
-   for(var c=0;c<2;c++){
-    pieces.push(new Piece(i,r,c))
-   }}}
- // Trim to exact count needed
- pieces=pieces.slice(0,totalPieces);
- // Shuffle
- for(var i=pieces.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=pieces[i];pieces[i]=pieces[j];pieces[j]=t}
- // Board: fill SZ*SZ cells
- BD=[];
- for(var r=0;r<SZ;r++){BD[r]=[];for(var c=0;c<SZ;c++)BD[r][c]=null}
- for(var i=0;i<SZ*SZ;i++)BD[Math.floor(i/SZ)][i%SZ]=pieces[i];
- // Ensure board has minimum complete images (4x4:1, 6x6:3)
- var need=SZ===4?1:3,boardP=pieces.slice(0,SZ*SZ),queueP=pieces.slice(SZ*SZ);
- var boardImgs={},queueImgs={};
- for(var i=0;i<boardP.length;i++){var ii=boardP[i].i;if(!boardImgs[ii])boardImgs[ii]=[];boardImgs[ii].push(i)}
- for(var i=0;i<queueP.length;i++){var ii=queueP[i].i;if(!queueImgs[ii])queueImgs[ii]=[];queueImgs[ii].push(i)}
- var got=0;
- for(var k in boardImgs)if(boardImgs[k].length===4)got++;
- for(var k in queueImgs){
-  if(got>=need)break;
-  if(queueImgs[k].length===4&&(!boardImgs[k]||boardImgs[k].length<4)){
-   // Swap this complete image from queue into board, take random incomplete images out
-   var swapOut=[];
-   for(var bk in boardImgs){if(boardImgs[bk].length<4&&boardImgs[bk].length>0&&swapOut.length<4){for(var si=0;si<boardImgs[bk].length&&swapOut.length<4;si++)swapOut.push(boardImgs[bk][si])}}
-   for(var si=0;si<4&&si<swapOut.length&&si<queueImgs[k].length;si++){
-    var bp=swapOut[si],qp=queueImgs[k][si]+SZ*SZ;
-    var t=pieces[bp];pieces[bp]=pieces[qp];pieces[qp]=t
+  var pieces=[];
+  for(var i=0;i<TI;i++){
+   for(var r=0;r<2;r++){
+    for(var c=0;c<2;c++){
+     pieces.push(new Piece(i,r,c))
+    }}}
+  // Trim to exact count needed
+  pieces=pieces.slice(0,totalPieces);
+  // Shuffle
+  for(var i=pieces.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=pieces[i];pieces[i]=pieces[j];pieces[j]=t}
+  // Board: ensure minimum complete images (4x4:1, 6x6:3)
+  var need=SZ===4?1:3;
+  BD=[];
+  for(var r=0;r<SZ;r++){BD[r]=[];for(var c=0;c<SZ;c++)BD[r][c]=null}
+  // Collect complete image sets from pieces
+  var imgSets={};
+  for(var i=0;i<pieces.length;i++){
+   var ii=pieces[i].i;
+   if(!imgSets[ii])imgSets[ii]=[];
+   imgSets[ii].push(i)
+  }
+  // Find complete sets
+  var completeImgs=[];
+  for(var k in imgSets)if(imgSets[k].length===4)completeImgs.push(parseInt(k));
+  // Ensure we have enough complete sets
+  var guaranteed=Math.min(need,completeImgs.length);
+  // Place guaranteed complete sets on board
+  var boardSlots=[];
+  for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)boardSlots.push({r:r,c:c});
+  // Shuffle board slots
+  for(var i=boardSlots.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=boardSlots[i];boardSlots[i]=boardSlots[j];boardSlots[j]=t}
+  var slotIdx=0;
+  for(var gi=0;gi<guaranteed;gi++){
+   var imgId=completeImgs[gi];
+   for(var pi=0;pi<4&&slotIdx<boardSlots.length;pi++){
+    var slot=boardSlots[slotIdx++];
+    BD[slot.r][slot.c]=pieces[imgSets[imgId][pi]]
    }
-   // Refill board
-   for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)BD[r][c]=null;
-   for(var i=0;i<SZ*SZ;i++)BD[Math.floor(i/SZ)][i%SZ]=pieces[i];
-   // Recount
-   boardP=pieces.slice(0,SZ*SZ);boardImgs={};
-   for(var i=0;i<boardP.length;i++){var ii=boardP[i].i;if(!boardImgs[ii])boardImgs[ii]=[];boardImgs[ii].push(i)}
-   got=0;for(var k2 in boardImgs)if(boardImgs[k2].length===4)got++;
-   queueP=pieces.slice(SZ*SZ);queueImgs={};
-   for(var i=0;i<queueP.length;i++){var ii=queueP[i].i;if(!queueImgs[ii])queueImgs[ii]=[];queueImgs[ii].push(i)}
   }
- }
- L("board has "+got+" complete images (need "+need+")");
- // Queues: distribute remaining pieces
- QQ=[];for(var c=0;c<SZ;c++)QQ[c]=[];
- var pi=SZ*SZ;
- for(var c=0;c<SZ;c++){
-  for(var q=0;q<qSize;q++){
-   if(pi<pieces.length)QQ[c].push(pieces[pi++])
+  // Mark used pieces
+  var used={};
+  for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(BD[r][c])used[BD[r][c].i+"."+BD[r][c].r+"."+BD[r][c].c]=true;
+  // Fill remaining board slots with unplaced pieces
+  var remaining=[];
+  for(var i=0;i<pieces.length;i++){
+   var p=pieces[i];
+   if(!used[p.i+"."+p.r+"."+p.c])remaining.push(p)
   }
- }
- layout();
+  // Shuffle remaining
+  for(var i=remaining.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=remaining[i];remaining[i]=remaining[j];remaining[j]=t}
+  var remIdx=0;
+  for(var r=0;r<SZ;r++){
+   for(var c=0;c<SZ;c++){
+    if(!BD[r][c]&&remIdx<remaining.length)BD[r][c]=remaining[remIdx++]
+   }
+  }
+  // Shuffle board positions (keep guaranteed sets intact by not reshuffling)
+  // Actually re-shuffle all board pieces for randomness
+  var allBoard=[];
+  for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(BD[r][c])allBoard.push(BD[r][c]);
+  for(var i=allBoard.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=allBoard[i];allBoard[i]=allBoard[j];allBoard[j]=t}
+  var ai=0;
+  for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)BD[r][c]=allBoard[ai++];
+  // Remaining pieces go to queue
+  var queuePieces=[];
+  for(var i=0;i<pieces.length;i++){
+   var p=pieces[i];
+   var onBoard=false;
+   for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(BD[r][c]===p)onBoard=true;
+   if(!onBoard)queuePieces.push(p)
+  }
+  L("board has "+guaranteed+" guaranteed complete images (need "+need+")");
+  // Queues: distribute remaining pieces
+  QQ=[];for(var c=0;c<SZ;c++)QQ[c]=[];
+  var pi=0;
+  for(var c=0;c<SZ;c++){
+   for(var q=0;q<qSize;q++){
+    if(pi<queuePieces.length)QQ[c].push(queuePieces[pi++])
+   }
+  }
+  layout();
  updateConns();updateUI();render();
  NB.disabled=false;RB.disabled=false;
  L("init SZ="+SZ+" Q="+QQ.map(function(q){return q.length}).join(",")+" TI="+TI);log("ready");initSound();loadCardBack();if(!PLOAD)preloadNext();
