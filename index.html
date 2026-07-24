@@ -74,7 +74,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 <audio id="adrag" src="sounds/drag.mp3" preload="auto"></audio>
 <audio id="aelim" src="sounds/elim.mp3" preload="auto"></audio>
 <audio id="acele" src="sounds/celebrate.mp3" preload="auto"></audio>
-<audio id="abgm" src="sounds/bgm.ogg" preload="auto" loop></audio>
+<audio id="abgm" preload="auto" loop></audio>
 <div id="toast"></div>
 <div id="logPanel"><textarea id="logArea" readonly></textarea></div>
 <script>
@@ -131,7 +131,7 @@ function showLoader(msg){
 function hideLoader(){LD.style.display="none";NB.style.display=""}
 function setProgress(cur,total){
  var pct=Math.round(cur/total*100);
- PB.style.width=pct+"%";PTE.textContent=T("Loading ")+cur+"/"+total
+ PB.style.width=pct+"%"
 }
 var cancelLoad=false;
 LDR.addEventListener("click",function(){cancelLoad=true;hideLoader();init(SZ)});
@@ -264,6 +264,7 @@ async function init(sz){
  if(sz)SZ=sz;
  GO=false;RU=3;CC=0;SV=0;DR=null;PS=null;CN=[];PT=[];SH=[];CA=[],CF=[],CF_START=0;DROPS=[];LOG=[];if(LA)LA.value="";
  NB.disabled=true;RB.disabled=true;
+ AB.src=BGM_FILES[Math.floor(Math.random()*BGM_FILES.length)];AB.load();
  resize();
  // Calculate queue sizes per column (4, 6, or 8 random)
   var qSize=[2,3,4][Math.floor(Math.random()*3)];
@@ -664,12 +665,12 @@ function drawConnsO(){
     X.beginPath();rr(BX+pos.c*CELL_W+2,BY+pos.r*CELL_H+2,CELL_W-4,CELL_H-4,4);X.fill()
    }
    X.strokeStyle="hsla("+H+",80%,65%,"+a+")";
-   X.lineWidth=5;
-   X.beginPath();
-   if(mR===maxR&&mC===maxC){X.moveTo(L+pad,T+pad);X.lineTo(R-pad,T+pad);X.lineTo(R-pad,my-pad);X.lineTo(mx+pad,my-pad);X.lineTo(mx+pad,B-pad);X.lineTo(L+pad,B-pad);X.closePath()}
-   else if(mR===maxR&&mC===minC){X.moveTo(R-pad,T+pad);X.lineTo(L+pad,T+pad);X.lineTo(L+pad,my-pad);X.lineTo(mx-pad,my-pad);X.lineTo(mx-pad,B-pad);X.lineTo(R-pad,B-pad);X.closePath()}
-   else if(mR===minR&&mC===maxC){X.moveTo(L+pad,B-pad);X.lineTo(R-pad,B-pad);X.lineTo(R-pad,my+pad);X.lineTo(mx+pad,my+pad);X.lineTo(mx+pad,T-pad);X.lineTo(L+pad,T-pad);X.closePath()}
-   else{X.moveTo(R-pad,B-pad);X.lineTo(L+pad,B-pad);X.lineTo(L+pad,my+pad);X.lineTo(mx-pad,my+pad);X.lineTo(mx-pad,T-pad);X.lineTo(R-pad,T-pad);X.closePath()}
+   X.lineWidth=3.5;
+   X.beginPath();var RAD=6;
+   if(mR===maxR&&mC===maxC){X.moveTo(L+pad+RAD,T+pad);X.arcTo(R-pad,T+pad,R-pad,T+pad+RAD,RAD);X.arcTo(R-pad,my-pad,mx+pad+RAD,my-pad,RAD);X.arcTo(mx+pad,my-pad,mx+pad,B-pad-RAD,RAD);X.arcTo(mx+pad,B-pad,L+pad+RAD,B-pad,RAD);X.arcTo(L+pad,B-pad,L+pad,T+pad+RAD,RAD);X.arcTo(L+pad,T+pad,L+pad+RAD,T+pad,RAD);X.closePath()}
+   else if(mR===maxR&&mC===minC){X.moveTo(L+pad+RAD,T+pad);X.arcTo(R-pad,T+pad,R-pad,T+pad+RAD,RAD);X.arcTo(R-pad,B-pad,mx-pad-RAD,B-pad,RAD);X.arcTo(mx-pad,B-pad,mx-pad,my-pad+RAD,RAD);X.arcTo(mx-pad,my-pad,L+pad+RAD,my-pad,RAD);X.arcTo(L+pad,my-pad,L+pad,T+pad+RAD,RAD);X.arcTo(L+pad,T+pad,L+pad+RAD,T+pad,RAD);X.closePath()}
+   else if(mR===minR&&mC===maxC){X.moveTo(L+pad+RAD,T+pad);X.arcTo(mx-pad,T+pad,mx-pad,T+pad+RAD,RAD);X.arcTo(mx-pad,my-pad,R-pad-RAD,my-pad,RAD);X.arcTo(R-pad,my-pad,R-pad,B-pad-RAD,RAD);X.arcTo(R-pad,B-pad,L+pad+RAD,B-pad,RAD);X.arcTo(L+pad,B-pad,L+pad,T+pad+RAD,RAD);X.arcTo(L+pad,T+pad,L+pad+RAD,T+pad,RAD);X.closePath()}
+   else{X.moveTo(mx+pad+RAD,T+pad);X.arcTo(R-pad,T+pad,R-pad,T+pad+RAD,RAD);X.arcTo(R-pad,B-pad,L+pad+RAD,B-pad,RAD);X.arcTo(L+pad,B-pad,L+pad,my-pad+RAD,RAD);X.arcTo(L+pad,my-pad,mx+pad-RAD,my-pad,RAD);X.arcTo(mx+pad,my-pad,mx+pad,T+pad+RAD,RAD);X.arcTo(mx+pad,T+pad,mx+pad+RAD,T+pad,RAD);X.closePath()}
    X.stroke()
   }else{
    var gx=BX+minC*CELL_W,gy=BY+minR*CELL_H,gw=(maxC-minC+1)*CELL_W,gh=(maxR-minR+1)*CELL_H;
@@ -883,15 +884,19 @@ window.addEventListener("touchend",function(e){if(!DR)return;var p=cpos(e);endDr
 
 RB.addEventListener("click",function(){if(canRelief())useRelief()});
 NB.addEventListener("click",function(){
- var ns=SZ===4?6:4;init(ns)
+  var ns=SZ===4?6:4;
+  init(ns);
+  AB.play().catch(function(){})
 });
 window.addEventListener("resize",function(){if(!DR){resize();layout();render()}});
 
+var BGM_FILES=["sounds/bgm/bgm1.ogg","sounds/bgm/bgm2.mp3","sounds/bgm/bgm3.mp3","sounds/bgm/bgm4.mp3","sounds/bgm/bgm5.mp3","sounds/bgm/bgm6.m4a"];
 function initSound(){
  SND=localStorage.getItem("soundEnabled")!=="false";
  SB.textContent=SND?T("Sound On"):T("Sound Off");LB.textContent=T("EN");
  if(!SND)SB.classList.add("muted");else SB.classList.remove("muted");
- AB.volume=0.5;AD.volume=2;AE.volume=1.5;AC2.volume=1.5
+ AB.volume=0.5;AD.volume=2;AE.volume=1.5;AC2.volume=1.5;
+ AB.load()
 }
 function playSound(a){
  if(!SND)return;
