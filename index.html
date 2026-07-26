@@ -645,24 +645,15 @@ function drawConnsO(){
  for(var g=0;g<CN.length;g++){
   if(CN[g].n===4)continue;
   var H=(CN[g].i*47+15)%360,a=0.7;
-  // Extend pieces into neighbors for seamless look
+  // Draw group pieces edge-to-edge for perfect alignment
   for(var p=0;p<CN[g].p.length;p++){
    var pos=CN[g].p[p],piece=BD[pos.r][pos.c];if(!piece)continue;
    var img=IM[piece.i];if(!img||!img.complete)continue;
    var pw=img.width/2,ph=img.height/2;
    var x=BX+pos.c*CELL_W,y=BY+pos.r*CELL_H;
-   var eL=0,eR=0,eT=0,eB=0;
-   for(var j=0;j<CN[g].p.length;j++){
-    if(j===p)continue;
-    var p2=CN[g].p[j];
-    if(p2.r===pos.r&&p2.c===pos.c-1)eL=2;
-    if(p2.r===pos.r&&p2.c===pos.c+1)eR=2;
-    if(p2.c===pos.c&&p2.r===pos.r-1)eT=2;
-    if(p2.c===pos.c&&p2.r===pos.r+1)eB=2
-   }
    X.save();
-   X.beginPath();rr(x-eL,y-eT,CELL_W+eL+eR,CELL_H+eT+eB,5);X.clip();
-   X.drawImage(img,piece.c*pw,piece.r*ph,pw,ph,x-eL,y-eT,CELL_W+eL+eR,CELL_H+eT+eB);
+   X.beginPath();rr(x,y,CELL_W,CELL_H,4);X.clip();
+   X.drawImage(img,piece.c*pw,piece.r*ph,pw,ph,x,y,CELL_W,CELL_H);
    X.restore();
   if(DB){X.shadowColor="rgba(0,0,0,0.8)";X.shadowBlur=3;X.fillStyle="rgba(255,255,255,0.95)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";X.textAlign="right";X.textBaseline="bottom";X.fillText(piece.i+":"+(piece.r*2+piece.c+1),x+CELL_W-5,y+CELL_H-2);X.shadowBlur=0}
   }
