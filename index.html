@@ -689,10 +689,10 @@ function drawConnsO(){
    X.strokeStyle="hsla("+H+",80%,65%,"+a+")";
    X.lineWidth=3.5;
    X.beginPath();var RAD=6;
-   if(mR===maxR&&mC===maxC){X.moveTo(L+pad+RAD,T+pad);X.arcTo(R-pad,T+pad,R-pad,T+pad+RAD,RAD);X.arcTo(R-pad,my-pad,mx+pad+RAD,my-pad,RAD);X.arcTo(mx+pad,my-pad,mx+pad,B-pad-RAD,RAD);X.arcTo(mx+pad,B-pad,L+pad+RAD,B-pad,RAD);X.arcTo(L+pad,B-pad,L+pad,T+pad+RAD,RAD);X.arcTo(L+pad,T+pad,L+pad+RAD,T+pad,RAD);X.closePath()}
-   else if(mR===maxR&&mC===minC){X.moveTo(L+pad+RAD,T+pad);X.arcTo(R-pad,T+pad,R-pad,T+pad+RAD,RAD);X.arcTo(R-pad,B-pad,mx-pad-RAD,B-pad,RAD);X.arcTo(mx-pad,B-pad,mx-pad,my-pad+RAD,RAD);X.arcTo(mx-pad,my-pad,L+pad+RAD,my-pad,RAD);X.arcTo(L+pad,my-pad,L+pad,T+pad+RAD,RAD);X.arcTo(L+pad,T+pad,L+pad+RAD,T+pad,RAD);X.closePath()}
-   else if(mR===minR&&mC===maxC){X.moveTo(L+pad+RAD,T+pad);X.arcTo(mx-pad,T+pad,mx-pad,T+pad+RAD,RAD);X.arcTo(mx-pad,my-pad,R-pad-RAD,my-pad,RAD);X.arcTo(R-pad,my-pad,R-pad,B-pad-RAD,RAD);X.arcTo(R-pad,B-pad,L+pad+RAD,B-pad,RAD);X.arcTo(L+pad,B-pad,L+pad,T+pad+RAD,RAD);X.arcTo(L+pad,T+pad,L+pad+RAD,T+pad,RAD);X.closePath()}
-   else{X.moveTo(mx+pad+RAD,T+pad);X.arcTo(R-pad,T+pad,R-pad,T+pad+RAD,RAD);X.arcTo(R-pad,B-pad,L+pad+RAD,B-pad,RAD);X.arcTo(L+pad,B-pad,L+pad,my-pad+RAD,RAD);X.arcTo(L+pad,my-pad,mx+pad-RAD,my-pad,RAD);X.arcTo(mx+pad,my-pad,mx+pad,T+pad+RAD,RAD);X.arcTo(mx+pad,T+pad,mx+pad+RAD,T+pad,RAD);X.closePath()}
+   if(mR===maxR&&mC===maxC){X.moveTo(L+pad+RAD,T+pad);X.arcTo(R-pad,T+pad,R-pad,T+pad+RAD,RAD);X.arcTo(R-pad,my-pad,mx-pad+RAD,my-pad,RAD);X.arcTo(mx-pad,my-pad,mx-pad,B-pad-RAD,RAD);X.arcTo(mx-pad,B-pad,L+pad+RAD,B-pad,RAD);X.arcTo(L+pad,B-pad,L+pad,T+pad+RAD,RAD);X.arcTo(L+pad,T+pad,L+pad+RAD,T+pad,RAD);X.closePath()}
+   else if(mR===maxR&&mC===minC){X.moveTo(L+pad+RAD,T+pad);X.arcTo(R-pad,T+pad,R-pad,T+pad+RAD,RAD);X.arcTo(R-pad,B-pad,mx+pad+RAD,B-pad,RAD);X.arcTo(mx+pad,B-pad,mx+pad,my-pad+RAD,RAD);X.arcTo(mx+pad,my-pad,L+pad+RAD,my-pad,RAD);X.arcTo(L+pad,my-pad,L+pad,T+pad+RAD,RAD);X.arcTo(L+pad,T+pad,L+pad+RAD,T+pad,RAD);X.closePath()}
+   else if(mR===minR&&mC===maxC){X.moveTo(L+pad+RAD,T+pad);X.arcTo(mx-pad,T+pad,mx-pad,T+pad+RAD,RAD);X.arcTo(mx-pad,my+pad,R-pad-RAD,my+pad,RAD);X.arcTo(R-pad,my+pad,R-pad,B-pad-RAD,RAD);X.arcTo(R-pad,B-pad,L+pad+RAD,B-pad,RAD);X.arcTo(L+pad,B-pad,L+pad,T+pad+RAD,RAD);X.arcTo(L+pad,T+pad,L+pad+RAD,T+pad,RAD);X.closePath()}
+   else{X.moveTo(mx+pad+RAD,T+pad);X.arcTo(R-pad,T+pad,R-pad,T+pad+RAD,RAD);X.arcTo(R-pad,B-pad,L+pad+RAD,B-pad,RAD);X.arcTo(L+pad,B-pad,L+pad,my+pad+RAD,RAD);X.arcTo(L+pad,my+pad,mx+pad-RAD,my+pad,RAD);X.arcTo(mx+pad,my+pad,mx+pad,T+pad+RAD,RAD);X.arcTo(mx+pad,T+pad,mx+pad+RAD,T+pad,RAD);X.closePath()}
    X.stroke()
   }else{
    var gx=BX+minC*CELL_W,gy=BY+minR*CELL_H,gw=(maxC-minC+1)*CELL_W,gh=(maxR-minR+1)*CELL_H;
