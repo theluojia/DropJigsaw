@@ -138,7 +138,8 @@ LDR.addEventListener("click",function(){cancelLoad=true;hideLoader();init(SZ)});
 
 function preloadNext(){
  PLOAD=true;
- var ns=SZ===4?6:4,sz2=ns,qt=[2,3,4][Math.floor(Math.random()*3)],tq2=sz2*qt,tp2=sz2*sz2+tq2;
+ var ns=SZ===4?6:4,sz2=ns;
+ var maxQ=sz2*4,tp2=sz2*sz2+maxQ;
  tp2=Math.floor(tp2/4)*4;var n2=tp2/4;
  log("preloading "+n2+" images for next...");
  pickImgs(n2).then(function(imgs){
@@ -271,7 +272,7 @@ async function init(sz){
  var totalPieces=SZ*SZ+totalQ;
  totalPieces=Math.floor(totalPieces/4)*4;
  TI=totalPieces/4;
- if(PRE.length>=TI){IM=PRE.splice(0,TI)}else{showLoader(T("Loading puzzle..."));IM=await pickImgs(TI,setProgress);hideLoader();if(cancelLoad){cancelLoad=false;return}}
+ if(PRE.length>=TI){IM=PRE.splice(0,TI)}else{var cached=PRE.splice(0);var need=TI-cached.length;if(need>0){showLoader(T("Loading puzzle..."));var loaded=await pickImgs(need,setProgress);hideLoader();IM=cached.concat(loaded);if(cancelLoad){cancelLoad=false;return}}else{IM=cached}}
  // Create all pieces
   var pieces=[];
   for(var i=0;i<TI;i++){
