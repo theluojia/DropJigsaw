@@ -644,7 +644,7 @@ function drawPiece(r,c,p){
 function drawConnsO(){
  for(var g=0;g<CN.length;g++){
   if(CN[g].n===4)continue;
-  var H=(CN[g].i*47+15)%360,a=CN[g].n===3?0.55:0.38;
+  var H=(CN[g].i*47+15)%360,a=0.7;
   // Extend pieces into neighbors for seamless look
   for(var p=0;p<CN[g].p.length;p++){
    var pos=CN[g].p[p],piece=BD[pos.r][pos.c];if(!piece)continue;
@@ -655,10 +655,10 @@ function drawConnsO(){
    for(var j=0;j<CN[g].p.length;j++){
     if(j===p)continue;
     var p2=CN[g].p[j];
-    if(p2.r===pos.r&&p2.c===pos.c-1)eL=4;
-    if(p2.r===pos.r&&p2.c===pos.c+1)eR=4;
-    if(p2.c===pos.c&&p2.r===pos.r-1)eT=4;
-    if(p2.c===pos.c&&p2.r===pos.r+1)eB=4
+    if(p2.r===pos.r&&p2.c===pos.c-1)eL=2;
+    if(p2.r===pos.r&&p2.c===pos.c+1)eR=2;
+    if(p2.c===pos.c&&p2.r===pos.r-1)eT=2;
+    if(p2.c===pos.c&&p2.r===pos.r+1)eB=2
    }
    X.save();
    X.beginPath();rr(x-eL,y-eT,CELL_W+eL+eR,CELL_H+eT+eB,5);X.clip();
