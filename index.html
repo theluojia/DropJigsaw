@@ -785,19 +785,22 @@ function drawGrid(){
 
 function drawDragged(){
  if(DR.type==="group"){
-  for(var i=0;i<DR.items.length;i++){
-   var it=DR.items[i],img=IM[it.piece.i];if(!img||!img.complete)continue;
-   var pw=img.width/2,ph=img.height/2;
-   var cx=it.px+(MX-DR.sx),cy=it.py+(MY-DR.sy);
-   X.globalAlpha=0.7;
-   X.save();X.beginPath();rr(cx-CELL_W/2,cy-CELL_H/2,CELL_W,CELL_H,4);X.clip();
-   X.drawImage(img,it.piece.c*pw,it.piece.r*ph,pw,ph,cx-CELL_W/2,cy-CELL_H/2,CELL_W,CELL_H);
-   X.strokeStyle="rgba(255,255,255,0.6)";X.lineWidth=2;
-   X.beginPath();rr(cx-CELL_W/2,cy-CELL_H/2,CELL_W,CELL_H,4);X.stroke();
-   X.restore();
-  if(DB){X.shadowColor="rgba(0,0,0,0.8)";X.shadowBlur=3;X.fillStyle="rgba(255,255,255,0.95)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";X.textAlign="right";X.textBaseline="bottom";X.fillText(piece.i+":"+(piece.r*2+piece.c+1),x+CELL_W-5,y+CELL_H-2);X.shadowBlur=0}
+  try {
+   for(var i=0;i<DR.items.length;i++){
+    var it=DR.items[i],img=IM[it.piece.i];if(!img||!img.complete)continue;
+    var pw=img.width/2,ph=img.height/2;
+    var cx=it.px+(MX-DR.sx),cy=it.py+(MY-DR.sy);
+    X.globalAlpha=0.7;
+    X.save();X.beginPath();rr(cx-CELL_W/2,cy-CELL_H/2,CELL_W,CELL_H,4);X.clip();
+    X.drawImage(img,it.piece.c*pw,it.piece.r*ph,pw,ph,cx-CELL_W/2,cy-CELL_H/2,CELL_W,CELL_H);
+    X.strokeStyle="rgba(255,255,255,0.6)";X.lineWidth=2;
+    X.beginPath();rr(cx-CELL_W/2,cy-CELL_H/2,CELL_W,CELL_H,4);X.stroke();
+    X.restore();
+   if(DB){X.shadowColor="rgba(0,0,0,0.8)";X.shadowBlur=3;X.fillStyle="rgba(255,255,255,0.95)";X.font="bold "+Math.floor(CELL_H/4.5)+"px Arial";X.textAlign="right";X.textBaseline="bottom";X.fillText(it.piece.i+":"+(it.piece.r*2+it.piece.c+1),cx-CELL_W/2+CELL_W-5,cy-CELL_H/2+CELL_H-2);X.shadowBlur=0}
+   }
+  } finally {
+   X.globalAlpha=1
   }
-  X.globalAlpha=1
  }else{
   var img=IM[DR.p.i];if(!img||!img.complete)return;
   var pw=img.width/2,ph=img.height/2;
@@ -908,7 +911,7 @@ RB.addEventListener("click",function(){if(canRelief())useRelief()});
 NB.addEventListener("click",function(){
   var ns=SZ===4?6:4;
   init(ns);
-  AB.play().catch(function(){})
+  if(SND) AB.play().catch(function(){})
 });
 window.addEventListener("resize",function(){if(!DR){resize();layout();render()}});
 
