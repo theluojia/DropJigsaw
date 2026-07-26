@@ -63,7 +63,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 <div id="ctls">
 <button id="nb" disabled>New Game</button>
 <div class="row2">
-<button id="rb" disabled>Relief</button>
+<button id="rb" disabled>Hint</button>
 <button id="db">Magic Off</button>
 <button id="lb">EN</button>
 <button id="sb">Sound On</button>
@@ -283,8 +283,8 @@ async function init(sz){
   pieces=pieces.slice(0,totalPieces);
   // Shuffle
   for(var i=pieces.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=pieces[i];pieces[i]=pieces[j];pieces[j]=t}
-  // Board: ensure minimum complete images (4x4:1, 6x6:3)
-  var need=SZ===4?1:3;
+  // Board: ensure minimum complete images (4x4:2, 6x6:4)
+  var need=SZ===4?2:4;
   BD=[];
   for(var r=0;r<SZ;r++){BD[r]=[];for(var c=0;c<SZ;c++)BD[r][c]=null}
   // Collect complete image sets from pieces
@@ -461,7 +461,7 @@ function completeGroups(){ var gs=findComplete();if(gs.length===0)return;
  PS={time:Date.now(),group:grp};
  SV+=100
 }
-// ===== Relief =====
+// ===== Hint =====
 function canRelief(){
  if(RU<=0||GO)return false;
  for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(!BD[r][c])return false;
@@ -505,7 +505,7 @@ function useRelief(){
  BD[tr][tc]=qpiece;QQ[qp.c].push(bp);
  updateConns();completeGroups();updateUI();render();
  L("RELIEF used img="+tg.i+" missing=("+ms.r+","+ms.c+") from Q col="+qp.c+" swapped at ("+tr+","+tc+")");
- toast(T("Relief!"));checkEnd()
+ toast(T("Hint!"));checkEnd()
 }
 
 function toast(m){TE.textContent=m;TE.classList.add("show");setTimeout(function(){TE.classList.remove("show")},2000)}
@@ -537,7 +537,7 @@ function checkEnd(){
 
 function updateUI(){
  SE.textContent=SV;ME.textContent=SZ+"x"+SZ;
- RB.disabled=RU<=0||GO;RB.textContent=T("Relief")+" ("+RU+")";
+ RB.disabled=RU<=0||GO;RB.textContent=T("Hint")+" ("+RU+")";
  NB.disabled=false;NB.textContent=GO?T("Next"):T("New Game");
  SB.textContent=SND?T("Sound On"):T("Sound Off");
  DBB.textContent=DB?T("Magic On"):T("Magic Off");
