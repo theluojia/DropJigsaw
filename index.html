@@ -56,7 +56,6 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
   <div class="bar-bg"><div class="bar-fg" id="progBar" style="width:0%"></div></div>
   <div class="btns">
     <button class="ld-reload" id="ldReload">Reload</button>
-    <button class="ld-quit" id="ldQuit">Quit</button>
   </div>
 </div>
 <canvas id="c"></canvas>
@@ -135,7 +134,7 @@ function setProgress(cur,total){
 }
 var cancelLoad=false;
 LDR.addEventListener("click",function(){cancelLoad=true;hideLoader();init(SZ)});
-LDQ.addEventListener("click",function(){cancelLoad=true;hideLoader();NB.style.display=""});
+// quit button removed
 
 function preloadNext(){
  PLOAD=true;
@@ -941,7 +940,7 @@ window.addEventListener("keydown",function(e){if(e.key==="r"){if(canRelief())use
 
 document.querySelector("h1").addEventListener("dblclick",function(){var p=document.getElementById("logPanel");p.style.display=p.style.display!=="block"?"block":"none"});
 DBB.addEventListener("click",function(){
- DB=!DB;DBB.textContent=DB?"Magic On":"Magic Off";
+ DB=!DB;DBB.textContent=DB?T("Magic On"):T("Magic Off");
  if(DB)DBB.classList.add("on");else DBB.classList.remove("on");
  render()
 });
