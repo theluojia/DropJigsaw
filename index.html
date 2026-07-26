@@ -84,7 +84,7 @@ var LANG=localStorage.getItem("lang")||"en";
 var TBL={
  "New Game":{en:"New Game",zh:"新游戏"},
  "Next":{en:"Next",zh:"下一局"},
- "Relief":{en:"Relief",zh:"救济"},
+ "Hint":{en:"Hint",zh:"提示"},
  "Magic Off":{en:"Magic Off",zh:"魔法关"},
  "Magic On":{en:"Magic On",zh:"魔法开"},
  "Sound On":{en:"Sound On",zh:"音效开"},
@@ -96,7 +96,7 @@ var TBL={
  "Quit":{en:"Quit",zh:"退出"},
  "Loading ":{en:"Loading ",zh:"加载 "},
  "Congratulations!":{en:"Congratulations!",zh:"恭喜通关！"},
- "Relief!":{en:"Relief!",zh:"救济！"}
+ "Hint!":{en:"Hint!",zh:"提示！"}
 };
 function T(k){var e=TBL[k];return e?e[LANG]||e.en:k}
 function setLang(l){LANG=l;localStorage.setItem("lang",l);updateUI();render()}
