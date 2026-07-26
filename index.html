@@ -899,9 +899,9 @@ window.addEventListener("mouseup",function(e){if(!DR)return;var p=cpos(e);endDra
 window.addEventListener("touchend",function(e){if(!DR)return;var p=cpos(e);endDrag(p.x,p.y)});
 
 RB.addEventListener("click",function(){if(canRelief())useRelief()});
-NB.addEventListener("click",function(){
+NB.addEventListener("click",async function(){
   var ns=SZ===4?6:4;
-  init(ns);
+  await init(ns);
   if(SND) AB.play().catch(function(){})
 });
 window.addEventListener("resize",function(){if(!DR){resize();layout();render()}});
