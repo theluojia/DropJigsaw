@@ -11,6 +11,7 @@
 body{background:#1a1a2e;font-family:"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:center;min-height:100dvh;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #app{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px}
 h1{color:#e0e0ff;font-size:20px;text-shadow:0 0 20px rgba(100,140,255,0.5);margin:0}
+.title-row{display:flex;align-items:center;justify-content:center;width:100%;max-width:380px;position:relative}
 #info{color:#8899cc;font-size:12px;display:flex;gap:14px}
 #score{color:#ffd700;font-weight:bold}
 canvas{border-radius:12px;box-shadow:0 0 30px rgba(60,100,200,0.3);cursor:grab}
@@ -34,6 +35,21 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 #sb.muted{background:linear-gradient(135deg,#666,#444)}
 #lb{background:linear-gradient(135deg,#607d8b,#455a64)}
 
+#restartBtn{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;font-size:16px;cursor:pointer;line-height:30px;text-align:center;padding:0}
+#restartBtn:hover{background:linear-gradient(135deg,#7c6cf0,#b8b0ff)}
+#confirmOverlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,8,0.75);z-index:300;justify-content:center;align-items:center;flex-direction:column}
+#confirmDialog{background:#12122e;border:3px solid #445;border-radius:18px;padding:28px 36px;text-align:center;box-shadow:0 0 50px rgba(60,100,200,0.3),inset 0 0 30px rgba(40,60,140,0.08)}
+#confirmDialog p{color:#c8d8ff;font-size:17px;margin:0 0 22px 0;font-weight:bold;letter-spacing:1px}
+#confirmDialog button{padding:9px 22px;margin:0 10px;border:none;border-radius:20px;font-size:14px;font-weight:bold;cursor:pointer;color:#fff;letter-spacing:1px}
+#confirmDialog .btn-yes{background:linear-gradient(135deg,#e74c3c,#c0392b)}
+#confirmDialog .btn-no{background:linear-gradient(135deg,#4ecdc4,#44bd9e)}
+#confirmDialog .btn-yes:hover{transform:scale(1.08)}
+#confirmDialog .btn-no:hover{transform:scale(1.08)}
+#nb.endMode{position:absolute;left:50%;transform:translateX(-50%);z-index:15;padding:12px 20px;font-size:14px;background:linear-gradient(135deg,#ffd700,#ff8c00);box-shadow:0 0 24px rgba(255,200,0,0.35);border-radius:26px;animation:pulse 1.8s ease-in-out infinite;white-space:nowrap;box-sizing:border-box}
+@keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(255,200,0,0.3)}50%{box-shadow:0 0 38px rgba(255,200,0,0.6)}}
+#endText{display:none;position:absolute;z-index:15;color:#ffd700;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(255,215,0,0.6);text-align:center;width:100%;pointer-events:none}
+
+
 #loader{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,10,30,0.95);z-index:200;flex-direction:column;justify-content:center;align-items:center;gap:20px}
 #loader .bar-bg{width:70%;max-width:300px;height:10px;background:#333;border-radius:5px;overflow:hidden}
 #loader .bar-fg{height:100%;background:linear-gradient(90deg,#6c5ce7,#00cec9);border-radius:5px;transition:width 0.3s}
@@ -47,7 +63,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 </head>
 <body>
 <div id="app">
-<h1 id="title">Drop Jigsaw</h1>
+<div class="title-row"><h1 id="title">Drop Jigsaw</h1><button id="restartBtn" title="Restart">&#x21bb;</button></div>
 
 <div id="info" style="display:none"><span id="score">0</span><span id="mode"></span></div>
 <div id="loader">
@@ -59,9 +75,9 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
   </div>
 </div>
 <canvas id="c"></canvas>
+<div id="endText"></div>
 <div id="status">loading...</div>
 <div id="ctls">
-<button id="nb" disabled>New Game</button>
 <div class="row2">
 <button id="rb" disabled>Hint</button>
 <button id="db">Magic Off</button>
@@ -70,21 +86,29 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 </div>
 </div>
 </div>
+<button id="nb" class="endMode" style="display:none">Next</button>
 <audio id="adrag" src="sounds/drag.mp3" preload="auto"></audio>
 <audio id="aelim" src="sounds/elim.mp3" preload="auto"></audio>
 <audio id="acele" src="sounds/celebrate.mp3" preload="auto"></audio>
 <audio id="abgm" preload="auto" loop></audio>
 <div id="toast"></div>
 <div id="logPanel"><textarea id="logArea" readonly></textarea></div>
+
+<div id="confirmOverlay">
+  <div id="confirmDialog">
+    <p id="confirmMsg">Restart game?</p>
+    <button class="btn-yes" id="confirmYes">Yes</button>
+    <button class="btn-no" id="confirmNo">No</button>
+  </div>
+</div>
+
 <script>
 "use strict";
 
 // ==== i18n ====
 var LANG=localStorage.getItem("lang")||"en";
 var TBL={
- "Restart":{en:"Restart",zh:"重新游戏"},
- "Next - Game {n}":{en:"Next - Game {n}",zh:"下一局 - 第{n}局"},
- "Game {n}":{en:"Game {n}",zh:"第{n}局"},
+  "Game {n}":{en:"Game {n}",zh:"第{n}局"},
  "Hint":{en:"Hint",zh:"提示"},
  "Magic Off":{en:"Magic Off",zh:"魔法关"},
  "Magic On":{en:"Magic On",zh:"魔法开"},
@@ -97,6 +121,9 @@ var TBL={
  "Quit":{en:"Quit",zh:"退出"},
  "Loading ":{en:"Loading ",zh:"加载 "},
  "Congratulations!":{en:"Congratulations!",zh:"恭喜通关！"},
+ "Restart game?":{en:"Restart game?",zh:"重新开始？"},
+ "Yes":{en:"Yes",zh:"是"},
+ "No":{en:"No",zh:"否"},
  "Hint!":{en:"Hint!",zh:"提示！"}
 };
 function T(k){var e=TBL[k];return e?e[LANG]||e.en:k}
@@ -547,7 +574,14 @@ function checkEnd(){
 function updateUI(){
  SE.textContent=SV;ME.textContent=SZ+"x"+SZ;
  RB.disabled=RU<=0||GO;RB.textContent=T("Hint")+" ("+RU+")";
- NB.disabled=false;NB.textContent=GO?T("Next - Game {n}").replace("{n}",GN+1):T("Restart");
+ NB.style.display=GO?"block":"none";
+ if(GO){
+  NB.textContent=T("Game {n}").replace("{n}",GN+1);
+  var cy=BY+SZ*CELL_H;
+  NB.style.top=(cy+18)+"px";NB.style.maxWidth=(SZ*CELL_W*0.75)+"px"
+ }
+ var et=document.getElementById("endText");
+ if(et){et.style.display=GO?"block":"none";if(GO){et.textContent=T("Congratulations!");et.style.top=(BY+(SZ*CELL_H/2)-16)+"px"}}
  SB.textContent=SND?T("Sound On"):T("Sound Off");
  DBB.textContent=DB?T("Magic On"):T("Magic Off");
  LB.textContent=T("EN")
@@ -886,13 +920,6 @@ function drawEnd(){
  var bx=BX+2,by=BY+2,bw=SZ*CELL_W-4,bh=SZ*CELL_H-4;
  X.fillStyle="rgba(0,0,0,"+(0.4+0.3*et)+")";
  X.beginPath();rr(bx,by,bw,bh,6);X.fill();
- if(e>0){
-  X.globalAlpha=Math.min(1,e/600);
-  var cx=bx+bw/2,cy=by+bh/2;
-  X.fillStyle="#ffd700";X.font="bold 28px Arial";X.textAlign="center";
-  X.fillText(T("Congratulations!"),cx,cy-8);
-  X.globalAlpha=1
- }
 }
 
 // ===== Events =====
@@ -907,6 +934,21 @@ window.addEventListener("mouseup",function(e){if(!DR)return;var p=cpos(e);endDra
 window.addEventListener("touchend",function(e){if(!DR)return;var p=cpos(e);endDrag(p.x,p.y)});
 
 RB.addEventListener("click",function(){if(canRelief())useRelief()});
+// Restart button
+document.getElementById("restartBtn").addEventListener("click",function(){
+ document.getElementById("confirmMsg").textContent=T("Restart game?");
+ document.getElementById("confirmYes").textContent=T("Yes");
+ document.getElementById("confirmNo").textContent=T("No");
+ document.getElementById("confirmOverlay").style.display="flex"
+});
+document.getElementById("confirmYes").addEventListener("click",async function(){
+ document.getElementById("confirmOverlay").style.display="none";
+ var ns=SZ;await init(ns);updateTitle();if(SND)AB.play().catch(function(){})
+});
+document.getElementById("confirmNo").addEventListener("click",function(){
+ document.getElementById("confirmOverlay").style.display="none"
+});
+// Next Game button
 NB.addEventListener("click",async function(){
   var ns=SZ===4?6:4;
   if(GO)GN++;
@@ -953,6 +995,7 @@ log("starting...");
 init(SZ);updateTitle();
 
 </script>
+
 </body>
 </html>
 
