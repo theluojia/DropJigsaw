@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -150,19 +150,25 @@ function preloadNext(){
 async function pickImgs(n,onProg){
  log("loading "+n+" images...");
  cancelLoad=false;
- var nums=[];for(var i=1;i<=400;i++)nums.push(i);
- for(var i=nums.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=nums[i];nums[i]=nums[j];nums[j]=t}
+ // Build two pools: fresh (uncached) first, then cached as fallback
+ var fresh=[],cached=[];
+ for(var i=1;i<=500;i++){if(IMGC[i]){cached.push(i)}else{fresh.push(i)}}
+ // Shuffle each pool independently
+ for(var i=fresh.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=fresh[i];fresh[i]=fresh[j];fresh[j]=t}
+ for(var i=cached.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=cached[i];cached[i]=cached[j];cached[j]=t}
+ // Fresh first, cached fallback
+ var nums=fresh.concat(cached);
  var imgs=[],tried=0;
- while(imgs.length<n&&tried<400&&!cancelLoad){
+ while(imgs.length<n&&tried<500&&!cancelLoad){
   var batch=[];
-  for(var i=0;i<6&&(tried+i)<400&&imgs.length+batch.length<n;i++){
+  for(var i=0;i<6&&(tried+i)<500&&imgs.length+batch.length<n;i++){
    var ni=nums[tried+i];
    if(IMGC[ni]){imgs.push(IMGC[ni]);if(onProg)onProg(imgs.length,n);continue}
    batch.push({ni:ni})
   }
   if(batch.length===0){tried+=i;continue}
   var results=await Promise.all(batch.map(function(b){
-   return loadImg("images/"+b.ni+".jpg",8000).then(function(img){IMGC[b.ni]=img;imgs.push(img);return 1}).catch(function(){return 0})
+   return loadImg("images/"+String(b.ni).padStart(3,"0")+".jpg",8000).then(function(img){IMGC[b.ni]=img;imgs.push(img);return 1}).catch(function(){return 0})
   }));
   tried+=i;
   if(onProg)onProg(imgs.length,n)
@@ -945,3 +951,5 @@ init(SZ);
 </script>
 </body>
 </html>
+
+
