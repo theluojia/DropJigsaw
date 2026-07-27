@@ -47,7 +47,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 </head>
 <body>
 <div id="app">
-<h1>Drop Jigsaw</h1>
+<h1 id="title">Drop Jigsaw</h1>
 
 <div id="info" style="display:none"><span id="score">0</span><span id="mode"></span></div>
 <div id="loader">
@@ -82,8 +82,9 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 // ==== i18n ====
 var LANG=localStorage.getItem("lang")||"en";
 var TBL={
- "New Game":{en:"New Game",zh:"新游戏"},
- "Next":{en:"Next",zh:"下一局"},
+ "Restart":{en:"Restart",zh:"重新游戏"},
+ "Next - Game {n}":{en:"Next - Game {n}",zh:"下一局 - 第{n}局"},
+ "Game {n}":{en:"Game {n}",zh:"第{n}局"},
  "Hint":{en:"Hint",zh:"提示"},
  "Magic Off":{en:"Magic Off",zh:"魔法关"},
  "Magic On":{en:"Magic On",zh:"魔法开"},
@@ -99,13 +100,14 @@ var TBL={
  "Hint!":{en:"Hint!",zh:"提示！"}
 };
 function T(k){var e=TBL[k];return e?e[LANG]||e.en:k}
-function setLang(l){LANG=l;localStorage.setItem("lang",l);updateUI();render()}
+function setLang(l){LANG=l;localStorage.setItem("lang",l);updateUI();updateTitle();render()}
+function updateTitle(){var t=document.getElementById("title");if(t){var n=GN||0;t.textContent=n>0?T("Game {n}").replace("{n}",n):"Drop Jigsaw"}document.title="Drop Jigsaw - "+t.textContent}
 var C=document.getElementById("c"),X=C.getContext("2d");
 var ST=document.getElementById("status"),TE=document.getElementById("toast");
 var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),SB=document.getElementById("sb"),LB=document.getElementById("lb"),LA=document.getElementById("logArea"),AD=document.getElementById("adrag"),AE=document.getElementById("aelim"),AC2=document.getElementById("acele"),AB=document.getElementById("abgm");
 var SE=document.getElementById("score"),ME=document.getElementById("mode");
 var LD=document.getElementById("loader"),PB=document.getElementById("progBar"),PTE=document.getElementById("progText"),LDR=document.getElementById("ldReload"),LDQ=document.getElementById("ldQuit");
-var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[],SND=true;
+var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[],SND=true,GN=1;
 var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],DROPS=[],CF_START=0,CI=null,CB=null,IMGC={},PRE=[],PLOAD=false;
 var DP=window.devicePixelRatio||1,CELL_W=60,CELL_H=90,CELL_R=2/3;
 var CW,CH,BX,BY;
@@ -545,7 +547,7 @@ function checkEnd(){
 function updateUI(){
  SE.textContent=SV;ME.textContent=SZ+"x"+SZ;
  RB.disabled=RU<=0||GO;RB.textContent=T("Hint")+" ("+RU+")";
- NB.disabled=false;NB.textContent=GO?T("Next"):T("New Game");
+ NB.disabled=false;NB.textContent=GO?T("Next - Game {n}").replace("{n}",GN+1):T("Restart");
  SB.textContent=SND?T("Sound On"):T("Sound Off");
  DBB.textContent=DB?T("Magic On"):T("Magic Off");
  LB.textContent=T("EN")
@@ -907,7 +909,9 @@ window.addEventListener("touchend",function(e){if(!DR)return;var p=cpos(e);endDr
 RB.addEventListener("click",function(){if(canRelief())useRelief()});
 NB.addEventListener("click",async function(){
   var ns=SZ===4?6:4;
+  if(GO)GN++;
   await init(ns);
+  updateTitle();
   if(SND) AB.play().catch(function(){})
 });
 window.addEventListener("resize",function(){if(!DR){resize();layout();render()}});
@@ -946,7 +950,7 @@ DBB.addEventListener("click",function(){
 // Start
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js")}
 log("starting...");
-init(SZ);
+init(SZ);updateTitle();
 
 </script>
 </body>
