@@ -16,24 +16,23 @@ h1{color:#e0e0ff;font-size:20px;text-shadow:0 0 20px rgba(100,140,255,0.5);margi
 #score{color:#ffd700;font-weight:bold}
 canvas{border-radius:12px;box-shadow:0 0 30px rgba(60,100,200,0.3);cursor:grab}
 canvas:active{cursor:grabbing}
-#ctls{display:flex;flex-direction:column;align-items:center;gap:6px;width:240px}
-button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weight:bold;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent;outline:none}
-#rb{background:linear-gradient(135deg,#ff6b6b,#ee5a24)}
-#rb:disabled{background:#444;color:#888}
-#nb{width:100%;padding:11px 0;font-size:14px;background:linear-gradient(135deg,#4ecdc4,#44bd9e)}
-#nb:disabled{background:#555;color:#999}
-.row2{display:flex;gap:6px;width:100%}
-.row2 button{flex:1}
-#db{background:linear-gradient(135deg,#a0a0c0,#707090)}
-#db.on{background:linear-gradient(135deg,#ffd700,#ff8c00)}
+#ctls{display:flex;flex-direction:column;align-items:center;gap:6px}
+.hc{position:absolute;top:-6px;right:-6px;background:#ffd700;color:#1a1a2e;border-radius:50%;width:20px;height:20px;font-size:11px;line-height:20px;text-align:center;font-weight:bold}
+button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weight:bold;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent;outline:none;transition:background 0.3s}
+#rb{background:linear-gradient(135deg,#ff6b6b,#ee5a24);line-height:1}
+#rb:disabled{background:#333;color:#666}
+.row2{display:flex;gap:16px;width:100%;justify-content:space-evenly}
+.row2 button{width:48px;height:48px;border-radius:50%;font-size:22px;padding:0;flex:none;display:flex;align-items:center;justify-content:center;position:relative}
+#db{background:linear-gradient(135deg,#555,#333)}
+#db.on{background:linear-gradient(135deg,#00b894,#00cec9);box-shadow:0 0 12px rgba(0,200,180,0.4)}
 #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#ffd700;padding:10px 24px;border-radius:20px;font-size:14px;font-weight:bold;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
 #toast.show{opacity:1}
 #status{display:none}
 #logPanel{display:none;width:100%;max-width:360px;margin-top:6px}
 #logPanel textarea{width:100%;height:160px;background:#0a0a1e;color:#aaccff;border:1px solid #334;border-radius:8px;padding:6px;font:10px monospace;resize:none}
-#sb{background:linear-gradient(135deg,#4caf50,#2e7d32)}
-#sb.muted{background:linear-gradient(135deg,#666,#444)}
-#lb{background:linear-gradient(135deg,#607d8b,#455a64)}
+#sb{background:linear-gradient(135deg,#4caf50,#2e7d32);line-height:1}
+#sb.muted{background:linear-gradient(135deg,#444,#333)}
+#lb{background:linear-gradient(135deg,#6c5ce7,#4834d4);line-height:1}
 
 #restartBtn{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;font-size:16px;cursor:pointer;line-height:30px;text-align:center;padding:0}
 #restartBtn:hover{background:linear-gradient(135deg,#7c6cf0,#b8b0ff)}
@@ -45,7 +44,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 #confirmDialog .btn-no{background:linear-gradient(135deg,#4ecdc4,#44bd9e)}
 #confirmDialog .btn-yes:hover{transform:scale(1.08)}
 #confirmDialog .btn-no:hover{transform:scale(1.08)}
-#nb.endMode{position:absolute;left:50%;transform:translateX(-50%);z-index:15;padding:12px 20px;font-size:14px;background:linear-gradient(135deg,#ffd700,#ff8c00);box-shadow:0 0 24px rgba(255,200,0,0.35);border-radius:26px;animation:pulse 1.8s ease-in-out infinite;white-space:nowrap;box-sizing:border-box}
+#nb.endMode{position:absolute;z-index:15;padding:12px 20px;font-size:14px;background:linear-gradient(135deg,#ffd700,#ff8c00);box-shadow:0 0 24px rgba(255,200,0,0.35);border-radius:26px;animation:pulse 1.8s ease-in-out infinite;white-space:nowrap;box-sizing:border-box}
 @keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(255,200,0,0.3)}50%{box-shadow:0 0 38px rgba(255,200,0,0.6)}}
 #endText{display:none;position:absolute;z-index:15;color:#ffd700;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(255,215,0,0.6);text-align:center;width:100%;pointer-events:none}
 
@@ -79,10 +78,10 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 <div id="status">loading...</div>
 <div id="ctls">
 <div class="row2">
-<button id="rb" disabled>Hint</button>
-<button id="db">Magic Off</button>
-<button id="lb">EN</button>
-<button id="sb">Sound On</button>
+<button id="rb" disabled title="Hint">&#x1F4A1;<span class="hc">3</span></button>
+<button id="db" title="Magic Off">&#x2728;</button>
+<button id="lb" title="EN">EN</button>
+<button id="sb" title="Sound On">&#x1F50A;</button>
 </div>
 </div>
 </div>
@@ -233,6 +232,8 @@ function layout(){
  var maxW=Math.min(window.innerWidth,640);
  if(CW>maxW)CW=maxW;
  C.width=CW*DP;C.height=CH*DP;C.style.width=CW+"px";C.style.height=CH+"px";
+ var tr=document.querySelector(".title-row");if(tr)tr.style.maxWidth=(SZ*CELL_W)+"px";
+ var ct=document.getElementById("ctls");if(ct)ct.style.width=(SZ*CELL_W)+"px";
  X.setTransform(1,0,0,1,0,0);X.scale(DP,DP);
  BX=Math.floor((CW-SZ*CELL_W)/2)
 }
@@ -573,18 +574,18 @@ function checkEnd(){
 
 function updateUI(){
  SE.textContent=SV;ME.textContent=SZ+"x"+SZ;
- RB.disabled=RU<=0||GO;RB.textContent=T("Hint")+" ("+RU+")";
+ RB.disabled=RU<=0||GO;RB.title=T("Hint")+" ("+RU+")";var hc=RB.querySelector(".hc");if(hc)hc.textContent=RU;
  NB.style.display=GO?"block":"none";
  if(GO){
   NB.textContent=T("Game {n}").replace("{n}",GN+1);
   var cy=BY+SZ*CELL_H;
-  NB.style.top=(cy+18)+"px";NB.style.maxWidth=(SZ*CELL_W*0.75)+"px"
+  NB.style.top=(cy+18)+"px";NB.style.maxWidth=(SZ*CELL_W*0.75)+"px";NB.style.left=(BX+SZ*CELL_W/2)+"px";NB.style.transform="translateX(-50%)"
  }
  var et=document.getElementById("endText");
  if(et){et.style.display=GO?"block":"none";if(GO){et.textContent=T("Congratulations!");et.style.top=(BY+(SZ*CELL_H/2)-16)+"px"}}
- SB.textContent=SND?T("Sound On"):T("Sound Off");
- DBB.textContent=DB?T("Magic On"):T("Magic Off");
- LB.textContent=T("EN")
+ SB.title=SND?T("Sound On"):T("Sound Off");SB.innerHTML=SND?"&#x1F50A;":"&#x1F507;";
+ DBB.title=DB?T("Magic On"):T("Magic Off");DBB.style.opacity=DB?"1":"0.4";
+ LB.title=T("EN");LB.textContent=LANG==="en"?"\u4e2d":"EN";LB.style.fontSize="16px";LB.style.fontWeight="bold"
 }
 
 // ===== Drawing =====
@@ -961,7 +962,7 @@ window.addEventListener("resize",function(){if(!DR){resize();layout();render()}}
 var BGM_FILES=["sounds/bgm/bgm1.ogg","sounds/bgm/bgm2.mp3","sounds/bgm/bgm3.mp3","sounds/bgm/bgm4.mp3","sounds/bgm/bgm5.mp3","sounds/bgm/bgm6.m4a","sounds/bgm/bgm7.mp3","sounds/bgm/bgm8.mp3","sounds/bgm/bgm9.mp3","sounds/bgm/bgm10.mp3","sounds/bgm/bgm11.mp3","sounds/bgm/bgm12.mp3","sounds/bgm/bgm13.mp3","sounds/bgm/bgm14.mp3","sounds/bgm/bgm15.mp3","sounds/bgm/bgm16.mp3","sounds/bgm/bgm17.mp3"];
 function initSound(){
  SND=localStorage.getItem("soundEnabled")!=="false";
- SB.textContent=SND?T("Sound On"):T("Sound Off");LB.textContent=T("EN");
+ SB.title=SND?T("Sound On"):T("Sound Off");SB.innerHTML=SND?"&#x1F50A;":"&#x1F507;";LB.title=T("EN");LB.textContent=LANG==="en"?"\u4e2d":"EN";LB.style.fontSize="16px";LB.style.fontWeight="bold";
  if(!SND)SB.classList.add("muted");else SB.classList.remove("muted");
  AB.volume=0.5;AD.volume=1;AE.volume=1;AC2.volume=1;
  AB.load()
@@ -974,7 +975,7 @@ function playSound(a){
 }
 function toggleSound(){
  SND=!SND;localStorage.setItem("soundEnabled",SND?"true":"false");
- SB.textContent=SND?T("Sound On"):T("Sound Off");LB.textContent=T("EN");
+ SB.title=SND?T("Sound On"):T("Sound Off");SB.innerHTML=SND?"&#x1F50A;":"&#x1F507;";LB.title=T("EN");LB.textContent=LANG==="en"?"\u4e2d":"EN";LB.style.fontSize="16px";LB.style.fontWeight="bold";
  if(SND){SB.classList.remove("muted");if(!GO)AB.play().catch(function(){})}
  else{SB.classList.add("muted");AB.pause()}
 }
@@ -984,7 +985,7 @@ window.addEventListener("keydown",function(e){if(e.key==="r"){if(canRelief())use
 
 document.querySelector("h1").addEventListener("dblclick",function(){var p=document.getElementById("logPanel");p.style.display=p.style.display!=="block"?"block":"none"});
 DBB.addEventListener("click",function(){
- DB=!DB;DBB.textContent=DB?T("Magic On"):T("Magic Off");
+ DB=!DB;DBB.title=DB?T("Magic On"):T("Magic Off");DBB.style.opacity=DB?"1":"0.4";
  if(DB)DBB.classList.add("on");else DBB.classList.remove("on");
  render()
 });
