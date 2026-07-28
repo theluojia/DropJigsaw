@@ -132,7 +132,7 @@ var TBL={
  "Reload":{en:"Reload",zh:"重新加载"},
  "Quit":{en:"Quit",zh:"退出"},
  "Loading ":{en:"Loading ",zh:"加载 "},
- "Congratulations":{en:"Congratulations",zh:"恭喜通关"},
+ "Bonus":{en:"Bonus ",zh:"奖励局 "},"Congratulations":{en:"Congratulations",zh:"恭喜通关"},
  "Restart game?":{en:"Restart game?",zh:"重新开始？"},
  "Yes":{en:"Yes",zh:"是"},
  "No":{en:"No",zh:"否"},
@@ -144,13 +144,14 @@ var TBL={
 };
 function T(k){var e=TBL[k];return e?e[LANG]||e.en:k}
 function setLang(l){LANG=l;localStorage.setItem("lang",l);updateUI();updateTitle();render()}
-function updateTitle(){var t=document.getElementById("title");if(t){var n=GN||0;t.textContent=n>0?T("Game {n}").replace("{n}",n):"Drop Jigsaw"}document.title="Drop Jigsaw - "+t.textContent}
+function getGameConfig(gn){if(gn%10===5)return{sz:4,nq:true};if(gn%10===0)return{sz:6,nq:true};return{sz:gn%2===1?4:6,nq:false}}
+function updateTitle(){var t=document.getElementById("title");if(t){var n=GN||0;t.textContent=n>0?(BN?T("Bonus"):"")+T("Game {n}").replace("{n}",n):"Drop Jigsaw"}document.title="Drop Jigsaw - "+t.textContent}
 var C=document.getElementById("c"),X=C.getContext("2d");
 var ST=document.getElementById("status"),TE=document.getElementById("toast");
 var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),SB=document.getElementById("sb"),LB=document.getElementById("lb"),LA=document.getElementById("logArea"),AD=document.getElementById("adrag"),AE=document.getElementById("aelim"),AC2=document.getElementById("acele"),AB=document.getElementById("abgm");
 var SE=document.getElementById("score"),ME=document.getElementById("mode");
 var LD=document.getElementById("loader"),PB=document.getElementById("progBar"),PTE=document.getElementById("progText"),LDR=document.getElementById("ldReload"),LDQ=document.getElementById("ldQuit");
-var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[],SND=true,GN=1;
+var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[],SND=true,GN=1,BN=false;
 var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],DROPS=[],CF_START=0,CI=null,CB=null,IMGC={},PRE=[],PLOAD=false;
 var DP=window.devicePixelRatio||1,CELL_W=60,CELL_H=90,CELL_R=2/3;
 var CW,CH,BX,BY;
@@ -322,14 +323,14 @@ function loadCardBack(){
 }
 loadCardBack();
 
-async function init(sz){
+async function init(sz,noQueue){
  if(sz)SZ=sz;
  GO=false;RU=3;CC=0;SV=0;DR=null;PS=null;CN=[];PT=[];SH=[];CA=[],CF=[],CF_START=0;DROPS=[];LOG=[];if(LA)LA.value="";
  NB.disabled=true;RB.disabled=true;
  AB.src=BGM_FILES[Math.floor(Math.random()*BGM_FILES.length)];AB.load();
  resize();
  // Calculate queue sizes per column (4, 6, or 8 random)
-  var qSize=[2,3,4][Math.floor(Math.random()*3)];
+  var qSize=noQueue?0:[2,3,4][Math.floor(Math.random()*3)];
   var totalQ=SZ*qSize;
  var totalPieces=SZ*SZ+totalQ;
  totalPieces=Math.floor(totalPieces/4)*4;
@@ -974,16 +975,15 @@ document.getElementById("restartBtn").addEventListener("click",function(){
 });
 document.getElementById("confirmYes").addEventListener("click",async function(){
  document.getElementById("confirmOverlay").style.display="none";
- var ns=SZ;await init(ns);updateTitle();if(SND)AB.play().catch(function(){})
+ await init(SZ,BN);updateTitle();if(SND)AB.play().catch(function(){})
 });
 document.getElementById("confirmNo").addEventListener("click",function(){
  document.getElementById("confirmOverlay").style.display="none"
 });
 // Next Game button
 NB.addEventListener("click",async function(){
-  var ns=SZ===4?6:4;
   if(GO)GN++;
-  await init(ns);
+  var cfg=getGameConfig(GN);await init(cfg.sz,cfg.nq);BN=cfg.nq;
   updateTitle();
   if(SND) AB.play().catch(function(){})
 });
@@ -1023,7 +1023,7 @@ DBB.addEventListener("click",function(){
 // Start
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js")}
 log("starting...");
-init(SZ);updateTitle();
+init(SZ,false);updateTitle();
 
 </script>
 
