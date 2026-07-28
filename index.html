@@ -14,13 +14,13 @@ body{background:#1a1a2e;font-family:"Segoe UI",sans-serif;display:flex;justify-c
 h1{color:#e0e0ff;font-size:20px;text-shadow:0 0 20px rgba(100,140,255,0.5);margin:0}
 .title-row{display:flex;align-items:center;justify-content:center;width:100%;max-width:380px;position:relative}
 #info{color:#8899cc;font-size:12px;display:flex;gap:14px}
-#score{color:#ffd700;font-weight:bold}
+#score{color:#e8d5a0;font-weight:bold}
 canvas{border-radius:12px;box-shadow:0 0 30px rgba(60,100,200,0.3);cursor:grab}
 canvas:active{cursor:grabbing}
 #ctls{display:flex;flex-direction:column;align-items:center;gap:6px}
 .hc{position:absolute;top:-6px;right:-9px;background:#ffd700;color:#1a1a2e;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:18px;text-align:center;font-weight:bold}
 button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weight:bold;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent;outline:none;transition:background 0.3s}
-#rb{background:linear-gradient(135deg,#00bcd4,#0097a7)}
+#rb{background:linear-gradient(135deg,#4dd0e1,#00acc1)}
 #rb:disabled{background:#444;color:#888}
 #rb:disabled img{opacity:0.35}
 .row2{display:flex;gap:8px;width:100%;justify-content:space-evenly}
@@ -28,17 +28,17 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 .icon-btn{width:54px;height:54px;border-radius:16px;padding:0;flex:none;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;color:#fff;position:relative;box-sizing:border-box}
 .icon-btn img{width:28px;height:28px;object-fit:contain;image-rendering:auto}
 .blabel{font-size:9px;line-height:1;font-weight:bold;text-align:center;white-space:nowrap;color:#aabbcc}
-#db{background:linear-gradient(135deg,#3949ab,#1a237e)}
-#db.on{background:linear-gradient(135deg,#5c6bc0,#3949ab);box-shadow:0 0 12px rgba(92,107,192,0.5)}
+#db{background:linear-gradient(135deg,#444,#333)}
+#db.on{background:linear-gradient(135deg,#7986cb,#5c6bc0);box-shadow:0 0 12px rgba(121,134,203,0.5)}
 #db img{filter:brightness(0.7)}
-#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#ffd700;padding:10px 24px;border-radius:20px;font-size:14px;font-weight:bold;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100}
+#toast{position:absolute;background:rgba(0,0,0,0.65);color:#ffd700;padding:12px 18px;border-radius:16px;font-size:13px;font-weight:bold;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:20;text-align:center;word-break:break-word;white-space:normal;line-height:1.4}
 #toast.show{opacity:1}
 #status{display:none}
 #logPanel{display:none;width:100%;max-width:360px;margin-top:6px}
 #logPanel textarea{width:100%;height:160px;background:#0a0a1e;color:#aaccff;border:1px solid #334;border-radius:8px;padding:6px;font:10px monospace;resize:none}
-#sb{background:linear-gradient(135deg,#f9a825,#f57f17)}
+#sb{background:linear-gradient(135deg,#ffab91,#ff7043)}
 #sb.muted{background:linear-gradient(135deg,#4a4a3a,#333322)}
-#lb{background:linear-gradient(135deg,#546e7a,#37474f)}
+#lb{background:linear-gradient(135deg,#90a4ae,#607d8b)}
 
 #restartBtn{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:32px;height:32px;cursor:pointer;opacity:0.75;image-rendering:auto}
 #restartBtn:hover{opacity:1}
@@ -54,7 +54,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 @keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(255,200,0,0.3)}50%{box-shadow:0 0 38px rgba(255,200,0,0.6)}}
 #endOverlay{display:none;position:absolute;z-index:15;flex-direction:column;justify-content:center;align-items:center;pointer-events:none}
 #endOverlay>*{pointer-events:auto}
-#endText{color:#ffd700;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(255,215,0,0.6);margin-bottom:18px}
+#endText{color:#ffd700;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(255,215,0,0.6);margin-bottom:18px;text-align:center}
 #nb.endBtn{position:static;padding:12px 24px;font-size:15px;border:none;border-radius:26px;color:#fff;background:linear-gradient(135deg,#ffd700,#ff8c00);box-shadow:0 0 20px rgba(255,200,0,0.35);animation:pulse 1.8s ease-in-out infinite;white-space:nowrap}
 
 
@@ -83,6 +83,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
   </div>
 </div>
 <div id="gameArea"><canvas id="c"></canvas>
+<div id="toast"></div>
 <div id="endOverlay"><div id="endText"></div><button id="nb" class="endBtn"><span id="nbText">Next Game</span></button></div></div>
 <div id="status">loading...</div>
 <div id="ctls">
@@ -98,7 +99,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 <audio id="aelim" src="sounds/elim.mp3" preload="auto"></audio>
 <audio id="acele" src="sounds/celebrate.mp3" preload="auto"></audio>
 <audio id="abgm" preload="auto" loop></audio>
-<div id="toast"></div>
+
 <div id="logPanel"><textarea id="logArea" readonly></textarea></div>
 
 <div id="confirmOverlay">
@@ -131,10 +132,14 @@ var TBL={
  "Reload":{en:"Reload",zh:"重新加载"},
  "Quit":{en:"Quit",zh:"退出"},
  "Loading ":{en:"Loading ",zh:"加载 "},
- "Congratulations!":{en:"Congratulations!",zh:"恭喜通关！"},
+ "Congratulations":{en:"Congratulations",zh:"恭喜通关"},
  "Restart game?":{en:"Restart game?",zh:"重新开始？"},
  "Yes":{en:"Yes",zh:"是"},
  "No":{en:"No",zh:"否"},
+ "No uses!":{en:"No Boom uses left",zh:"消除次数已用完"},
+ "Board has space!":{en:"Board still has space, try filling it first",zh:"棋盘还有空位，先尝试填满棋盘"},
+ "Board has groups!":{en:"Board has complete groups, try clearing them first",zh:"当前棋盘有完整碎片组，先尝试自己消除"},
+ "No 3-union!":{en:"No 3-piece connected group, try forming one first",zh:"不存在3碎片联合体，先尝试组成3碎片联合体"},
  "Hint!":{en:"Hint!",zh:"提示！"}
 };
 function T(k){var e=TBL[k];return e?e[LANG]||e.en:k}
@@ -251,10 +256,12 @@ function layout(){
  document.querySelectorAll(".icon-btn").forEach(function(b){b.style.width=bs+"px";b.style.height=bs+"px"});
  document.querySelectorAll(".icon-btn img").forEach(function(i){i.style.width=isz+"px";i.style.height=isz+"px"});
  document.querySelectorAll(".blabel").forEach(function(l){l.style.fontSize=fs+"px"});
+ document.querySelectorAll(".hc").forEach(function(b){var bsz=Math.floor(bs*0.35);b.style.width=bsz+"px";b.style.height=bsz+"px";b.style.fontSize=Math.floor(bsz*0.55)+"px";b.style.lineHeight=bsz+"px"});
  var rb=document.getElementById("restartBtn");if(rb){var rbsz=Math.floor(bw*0.10);rb.style.width=rbsz+"px";rb.style.height=rbsz+"px"};
  if(NB){NB.style.fontSize=Math.floor(bw*0.044)+"px";NB.style.padding=Math.floor(bw*0.04)+"px "+Math.floor(bw*0.08)+"px"};
  X.setTransform(1,0,0,1,0,0);X.scale(DP,DP);
  BX=Math.floor((CW-SZ*CELL_W)/2)
+ TE=document.getElementById("toast");if(TE){var bw=SZ*CELL_W;var tw=Math.floor(bw*0.82);TE.style.left=(BX+bw/2)+"px";TE.style.top=(BY+SZ*CELL_H/2)+"px";TE.style.transform="translate(-50%,-50%)";TE.style.maxWidth=tw+"px";TE.style.fontSize=Math.floor(bw*0.045)+"px";TE.style.padding=Math.floor(bw*0.035)+"px "+Math.floor(bw*0.05)+"px";TE.style.borderRadius=Math.floor(bw*0.045)+"px"}
 }
 
 // ===== Connections: scan all 2x2 positions =====
@@ -519,16 +526,19 @@ function completeGroups(){ var gs=findComplete();if(gs.length===0)return;
 }
 // ===== Hint =====
 function canRelief(){
- if(RU<=0||GO)return false;
- for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(!BD[r][c])return false;
- if(findComplete().length>0)return false;
+ if(RU<=0||GO)return "No uses!";
+ for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(!BD[r][c])return "Board has space!";
+ // Check if any image has all 4 pieces on board (connected or scattered)
+ var cnt={};
+ for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(BD[r][c]){var ii=BD[r][c].i;cnt[ii]=(cnt[ii]||0)+1}
+ for(var k in cnt)if(cnt[k]===4)return "Board has groups!";
  updateConns();
  for(var i=0;i<CN.length;i++){
   if(CN[i].n===3){
    var m=findMissing(CN[i]);if(m&&findInQueue(m))return true
   }
  }
- return false
+ return "No 3-union!"
 }
 
 function findMissing(g){
@@ -547,7 +557,7 @@ function findInQueue(t){
 }
 
 function useRelief(){
- if(!canRelief())return;RU--;
+ if(canRelief()!==true)return;RU--;
  updateConns();
  var tg=null;
  for(var i=0;i<CN.length;i++){if(CN[i].n===3){var m=findMissing(CN[i]);if(m&&findInQueue(m)){tg=CN[i];break}}}
@@ -561,10 +571,10 @@ function useRelief(){
  BD[tr][tc]=qpiece;QQ[qp.c].push(bp);
  updateConns();completeGroups();updateUI();render();
  L("RELIEF used img="+tg.i+" missing=("+ms.r+","+ms.c+") from Q col="+qp.c+" swapped at ("+tr+","+tc+")");
- toast(T("Hint!"));checkEnd()
+ checkEnd()
 }
 
-function toast(m){TE.textContent=m;TE.classList.add("show");setTimeout(function(){TE.classList.remove("show")},2000)}
+function toast(m){var el=document.getElementById("toast");if(el){el.textContent=m;el.classList.add("show");setTimeout(function(){el.classList.remove("show")},2000)}}
 
 function isDone(){
  for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(BD[r][c])return false;
@@ -955,7 +965,7 @@ window.addEventListener("touchmove",function(e){if(!DR)return;e.preventDefault()
 window.addEventListener("mouseup",function(e){if(!DR)return;var p=cpos(e);endDrag(p.x,p.y)});
 window.addEventListener("touchend",function(e){if(!DR)return;var p=cpos(e);endDrag(p.x,p.y)});
 
-RB.addEventListener("click",function(){if(canRelief())useRelief()});
+RB.addEventListener("click",function(){var cr=canRelief();if(cr===true)useRelief();else toast(T(cr||"Hint!"))});
 // Restart button
 document.getElementById("restartBtn").addEventListener("click",function(){
  document.getElementById("confirmMsg").textContent=T("Restart game?");
@@ -1002,7 +1012,7 @@ function toggleSound(){
 }
 SB.addEventListener("click",function(){toggleSound()});LB.addEventListener("click",function(){setLang(LANG==="en"?"zh":"en")});
 
-window.addEventListener("keydown",function(e){if(e.key==="r"){if(canRelief())useRelief()}if(e.key==="n")NB.click()});
+window.addEventListener("keydown",function(e){if(e.key==="r"){var cr=canRelief();if(cr===true)useRelief();else toast(T(cr||"Hint!"))}if(e.key==="n")NB.click()});
 
 document.querySelector("h1").addEventListener("dblclick",function(){var p=document.getElementById("logPanel");p.style.display=p.style.display!=="block"?"block":"none"});
 DBB.addEventListener("click",function(){
