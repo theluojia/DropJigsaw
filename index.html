@@ -10,6 +10,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#1a1a2e;font-family:"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:center;min-height:100dvh;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #app{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px}
+#gameArea{position:relative}
 h1{color:#e0e0ff;font-size:20px;text-shadow:0 0 20px rgba(100,140,255,0.5);margin:0}
 .title-row{display:flex;align-items:center;justify-content:center;width:100%;max-width:380px;position:relative}
 #info{color:#8899cc;font-size:12px;display:flex;gap:14px}
@@ -44,9 +45,11 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 #confirmDialog .btn-no{background:linear-gradient(135deg,#4ecdc4,#44bd9e)}
 #confirmDialog .btn-yes:hover{transform:scale(1.08)}
 #confirmDialog .btn-no:hover{transform:scale(1.08)}
-#nb.endMode{position:absolute;z-index:15;padding:12px 20px;font-size:14px;background:linear-gradient(135deg,#ffd700,#ff8c00);box-shadow:0 0 24px rgba(255,200,0,0.35);border-radius:26px;animation:pulse 1.8s ease-in-out infinite;white-space:nowrap;box-sizing:border-box}
 @keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(255,200,0,0.3)}50%{box-shadow:0 0 38px rgba(255,200,0,0.6)}}
-#endText{display:none;position:absolute;z-index:15;color:#ffd700;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(255,215,0,0.6);text-align:center;width:100%;pointer-events:none}
+#endOverlay{display:none;position:absolute;z-index:15;flex-direction:column;justify-content:center;align-items:center;pointer-events:none}
+#endOverlay>*{pointer-events:auto}
+#endText{color:#ffd700;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(255,215,0,0.6);margin-bottom:18px}
+#nb.endBtn{position:static;padding:12px 24px;font-size:15px;border:none;border-radius:26px;color:#fff;background:linear-gradient(135deg,#ffd700,#ff8c00);box-shadow:0 0 20px rgba(255,200,0,0.35);animation:pulse 1.8s ease-in-out infinite;white-space:nowrap}
 
 
 #loader{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,10,30,0.95);z-index:200;flex-direction:column;justify-content:center;align-items:center;gap:20px}
@@ -73,8 +76,8 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
     <button class="ld-reload" id="ldReload">Reload</button>
   </div>
 </div>
-<canvas id="c"></canvas>
-<div id="endText"></div>
+<div id="gameArea"><canvas id="c"></canvas>
+<div id="endOverlay"><div id="endText"></div><button id="nb" class="endBtn">Next Game</button></div></div>
 <div id="status">loading...</div>
 <div id="ctls">
 <div class="row2">
@@ -85,7 +88,6 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 </div>
 </div>
 </div>
-<button id="nb" class="endMode" style="display:none">Next</button>
 <audio id="adrag" src="sounds/drag.mp3" preload="auto"></audio>
 <audio id="aelim" src="sounds/elim.mp3" preload="auto"></audio>
 <audio id="acele" src="sounds/celebrate.mp3" preload="auto"></audio>
@@ -108,6 +110,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 var LANG=localStorage.getItem("lang")||"en";
 var TBL={
   "Game {n}":{en:"Game {n}",zh:"第{n}局"},
+ "Next Game":{en:"Next Game",zh:"下一局"},
  "Hint":{en:"Hint",zh:"提示"},
  "Magic Off":{en:"Magic Off",zh:"魔法关"},
  "Magic On":{en:"Magic On",zh:"魔法开"},
@@ -232,6 +235,7 @@ function layout(){
  var maxW=Math.min(window.innerWidth,640);
  if(CW>maxW)CW=maxW;
  C.width=CW*DP;C.height=CH*DP;C.style.width=CW+"px";C.style.height=CH+"px";
+ var ga=document.getElementById("gameArea");if(ga){ga.style.width=CW+"px";ga.style.height=CH+"px"}
  var tr=document.querySelector(".title-row");if(tr)tr.style.maxWidth=(SZ*CELL_W)+"px";
  var ct=document.getElementById("ctls");if(ct)ct.style.width=(SZ*CELL_W)+"px";
  X.setTransform(1,0,0,1,0,0);X.scale(DP,DP);
@@ -575,14 +579,16 @@ function checkEnd(){
 function updateUI(){
  SE.textContent=SV;ME.textContent=SZ+"x"+SZ;
  RB.disabled=RU<=0||GO;RB.title=T("Hint")+" ("+RU+")";var hc=RB.querySelector(".hc");if(hc)hc.textContent=RU;
- NB.style.display=GO?"block":"none";
- if(GO){
-  NB.textContent=T("Game {n}").replace("{n}",GN+1);
-  var cy=BY+SZ*CELL_H;
-  NB.style.top=(cy+18)+"px";NB.style.maxWidth=(SZ*CELL_W*0.75)+"px";NB.style.left=(BX+SZ*CELL_W/2)+"px";NB.style.transform="translateX(-50%)"
+ var ov=document.getElementById("endOverlay");
+ if(ov){
+  ov.style.display=GO?"flex":"none";
+  if(GO){
+   ov.style.left=BX+"px";ov.style.top=BY+"px";
+   ov.style.width=(SZ*CELL_W)+"px";ov.style.height=(SZ*CELL_H)+"px";
+   document.getElementById("endText").textContent=T("Congratulations!");
+   NB.textContent=T("Next Game")
+  }
  }
- var et=document.getElementById("endText");
- if(et){et.style.display=GO?"block":"none";if(GO){et.textContent=T("Congratulations!");et.style.top=(BY+(SZ*CELL_H/2)-16)+"px"}}
  SB.title=SND?T("Sound On"):T("Sound Off");SB.innerHTML=SND?"&#x1F50A;":"&#x1F507;";
  DBB.title=DB?T("Magic On"):T("Magic Off");DBB.style.opacity=DB?"1":"0.4";
  LB.title=T("EN");LB.textContent=LANG==="en"?"\u4e2d":"EN";LB.style.fontSize="16px";LB.style.fontWeight="bold"
