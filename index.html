@@ -137,7 +137,7 @@ var TBL={
  "Restart game?":{en:"Restart this game?",zh:"重新开始本局？"},
  "Yes":{en:"Yes",zh:"是"},
  "No":{en:"No",zh:"否"},
- "Continue?":{en:"Continue?",zh:"继续游戏？"},
+ "Continue":{en:"Continue",zh:"继续游戏"},
  "New Game":{en:"New Game",zh:"重新开始"},
  "Score low!":{en:"Not enough score, need 50 pts",zh:"分数不足，需要 50 分"},
  "Board has space!":{en:"Board still has space, try filling it first",zh:"棋盘还有空位，先尝试填满棋盘"},
@@ -1033,7 +1033,7 @@ log("starting...");
 if(saved){SV=saved.sv;GN=saved.gn;SZ=saved.sz;BN=saved.bn||false;
  var cfg=getGameConfig(GN);
  if(cfg.sz!==SZ||cfg.nq!==BN){SZ=cfg.sz;BN=cfg.nq}
- document.getElementById("confirmMsg").innerHTML=T("Continue?")+"<br><small>"+T("Game {n}").replace("{n}",GN)+" · "+SV+"</small>";
+ document.getElementById("confirmMsg").innerHTML=T("Continue")+"<br><small>"+T("Game {n}").replace("{n}",GN)+" · "+SV+"</small>";
  document.getElementById("confirmYes").textContent=T("Continue?");
  document.getElementById("confirmNo").textContent=T("New Game");
  document.getElementById("confirmOverlay").style.display="flex";
@@ -1043,7 +1043,7 @@ if(saved){SV=saved.sv;GN=saved.gn;SZ=saved.sz;BN=saved.bn||false;
  };
  document.getElementById("confirmNo").onclick=async function(){
   document.getElementById("confirmOverlay").style.display="none";
-  SV=0;GN=1;SZ=4;BN=false;localStorage.removeItem("dj_save");
+  SV=100;GS=100;GN=1;SZ=4;BN=false;localStorage.removeItem("dj_save");
   await init(4,false);updateTitle();if(SND)AB.play().catch(function(){})
  }
 }else{SV=100;GS=100;await init(SZ,false);updateTitle()}})();
