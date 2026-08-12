@@ -18,7 +18,7 @@ h1{color:#e0e0ff;font-size:20px;text-shadow:0 0 20px rgba(100,140,255,0.5);margi
 canvas{border-radius:12px;box-shadow:0 0 30px rgba(60,100,200,0.3);cursor:grab}
 canvas:active{cursor:grabbing}
 #ctls{display:flex;flex-direction:column;align-items:center;gap:6px}
-.hc{position:absolute;top:-6px;right:-9px;background:#ffd700;color:#1a1a2e;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:18px;text-align:center;font-weight:bold}
+.hc{position:absolute;top:-8px;right:-8px;background:#ffd700;color:#1a1a2e;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:18px;text-align:center;font-weight:bold}
 button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weight:bold;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent;outline:none;transition:background 0.3s}
 #rb{background:linear-gradient(135deg,#4dd0e1,#00acc1)}
 #rb:disabled{background:#444;color:#888}
@@ -40,6 +40,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 #sb.muted{background:linear-gradient(135deg,#4a4a3a,#333322)}
 #lb{background:linear-gradient(135deg,#90a4ae,#607d8b)}
 
+#scoreDisp{color:#ffd700;font-size:18px;font-weight:bold;position:absolute;left:10px;top:50%;transform:translateY(-50%);text-shadow:0 0 12px rgba(255,215,0,0.5);letter-spacing:1px;background:rgba(255,215,0,0.08);padding:2px 10px;border-radius:10px}
 #restartBtn{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:32px;height:32px;cursor:pointer;opacity:0.75;image-rendering:auto}
 #restartBtn:hover{opacity:1}
 
@@ -71,7 +72,7 @@ button{padding:9px 14px;border:none;border-radius:23px;font-size:12px;font-weigh
 </head>
 <body>
 <div id="app">
-<div class="title-row"><h1 id="title">Drop Jigsaw</h1><img id="restartBtn" src="images/utils/restart.png" title="Restart"></div>
+<div class="title-row"><span id="scoreDisp">0</span><h1 id="title">Drop Jigsaw</h1><img id="restartBtn" src="images/utils/restart.png" title="Restart"></div>
 
 <div id="info" style="display:none"><span id="score">0</span><span id="mode"></span></div>
 <div id="loader">
@@ -136,7 +137,9 @@ var TBL={
  "Restart game?":{en:"Restart game?",zh:"重新开始？"},
  "Yes":{en:"Yes",zh:"是"},
  "No":{en:"No",zh:"否"},
- "No uses!":{en:"No Boom uses left",zh:"消除次数已用完"},
+ "Continue?":{en:"Continue?",zh:"继续游戏？"},
+ "New Game":{en:"New Game",zh:"重新开始"},
+ "Score low!":{en:"Not enough score, need 50 pts",zh:"分数不足，需要 50 分"},
  "Board has space!":{en:"Board still has space, try filling it first",zh:"棋盘还有空位，先尝试填满棋盘"},
  "Board has groups!":{en:"Board has complete groups, try clearing them first",zh:"当前棋盘有完整碎片组，先尝试自己消除"},
  "No 3-union!":{en:"No 3-piece connected group, try forming one first",zh:"不存在3碎片联合体，先尝试组成3碎片联合体"},
@@ -144,6 +147,8 @@ var TBL={
 };
 function T(k){var e=TBL[k];return e?e[LANG]||e.en:k}
 function setLang(l){LANG=l;localStorage.setItem("lang",l);updateUI();updateTitle();render()}
+function loadSave(){try{var s=localStorage.getItem("dj_save");if(s){var d=JSON.parse(s);if(d.sv!==undefined&&d.gn){return d}}return null}catch(e){return null}}
+function saveGame(){try{localStorage.setItem("dj_save",JSON.stringify({sv:SV,gn:GN,sz:SZ,bn:BN}))}catch(e){}}
 function getGameConfig(gn){if(gn%10===5)return{sz:4,nq:true};if(gn%10===0)return{sz:6,nq:true};return{sz:gn%2===1?4:6,nq:false}}
 function updateTitle(){var t=document.getElementById("title");if(t){var n=GN||0;t.textContent=n>0?(BN?T("Bonus"):"")+T("Game {n}").replace("{n}",n):"Drop Jigsaw"}document.title="Drop Jigsaw"}
 var C=document.getElementById("c"),X=C.getContext("2d");
@@ -151,7 +156,7 @@ var ST=document.getElementById("status"),TE=document.getElementById("toast");
 var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),SB=document.getElementById("sb"),LB=document.getElementById("lb"),LA=document.getElementById("logArea"),AD=document.getElementById("adrag"),AE=document.getElementById("aelim"),AC2=document.getElementById("acele"),AB=document.getElementById("abgm");
 var SE=document.getElementById("score"),ME=document.getElementById("mode");
 var LD=document.getElementById("loader"),PB=document.getElementById("progBar"),PTE=document.getElementById("progText"),LDR=document.getElementById("ldReload"),LDQ=document.getElementById("ldQuit");
-var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,RU=3,GO=false,SV=0,DB=false,LOG=[],SND=true,GN=1,BN=false;
+var SZ=4,BD=[],QQ=[],IM=[],TI=0,CC=0,GO=false,SV=0,DB=false,LOG=[],SND=true,GN=1,BN=false;
 var DR=null,PS=null,MX=0,MY=0,CN=[],PT=[],SH=[],CA=[],CF=[],DROPS=[],CF_START=0,CI=null,CB=null,IMGC={},PRE=[],PLOAD=false;
 var DP=window.devicePixelRatio||1,CELL_W=60,CELL_H=90,CELL_R=2/3;
 var CW,CH,BX,BY;
@@ -254,10 +259,10 @@ function layout(){
  var tr=document.querySelector(".title-row");if(tr)tr.style.maxWidth=(SZ*CELL_W)+"px";
  var ct=document.getElementById("ctls");if(ct)ct.style.width=(SZ*CELL_W)+"px";
  var bw=SZ*CELL_W;var bs=Math.floor(bw*0.14);var isz=Math.floor(bs*0.65);var fs=Math.max(8,Math.floor(bw*0.032));
- document.querySelectorAll(".icon-btn").forEach(function(b){b.style.width=bs+"px";b.style.height=bs+"px"});
+ document.querySelectorAll(".icon-btn").forEach(function(b){b.style.width=bs+"px";b.style.height=bs+"px";b.style.borderRadius=Math.floor(bs*0.25)+"px"});
  document.querySelectorAll(".icon-btn img").forEach(function(i){i.style.width=isz+"px";i.style.height=isz+"px"});
  document.querySelectorAll(".blabel").forEach(function(l){l.style.fontSize=fs+"px"});
- document.querySelectorAll(".hc").forEach(function(b){var bsz=Math.floor(bs*0.35);b.style.width=bsz+"px";b.style.height=bsz+"px";b.style.fontSize=Math.floor(bsz*0.55)+"px";b.style.lineHeight=bsz+"px"});
+ document.querySelectorAll(".hc").forEach(function(b){var bsz=Math.floor(bs*0.35);b.style.width=bsz+"px";b.style.height=bsz+"px";b.style.fontSize=Math.floor(bsz*0.55)+"px";b.style.lineHeight=bsz+"px";b.style.top=Math.floor(-bsz*0.3)+"px";b.style.right=Math.floor(-bs*0.08)+"px"});
  var rb=document.getElementById("restartBtn");if(rb){var rbsz=Math.floor(bw*0.10);rb.style.width=rbsz+"px";rb.style.height=rbsz+"px"};
  if(NB){NB.style.fontSize=Math.floor(bw*0.044)+"px";NB.style.padding=Math.floor(bw*0.04)+"px "+Math.floor(bw*0.08)+"px"};
  X.setTransform(1,0,0,1,0,0);X.scale(DP,DP);
@@ -325,7 +330,7 @@ loadCardBack();
 
 async function init(sz,noQueue){
  if(sz)SZ=sz;
- GO=false;RU=3;CC=0;SV=0;DR=null;PS=null;CN=[];PT=[];SH=[];CA=[],CF=[],CF_START=0;DROPS=[];LOG=[];if(LA)LA.value="";
+ GO=false;CC=0;DR=null;PS=null;CN=[];PT=[];SH=[];CA=[],CF=[],CF_START=0;DROPS=[];LOG=[];if(LA)LA.value="";
  NB.disabled=true;RB.disabled=true;
  AB.src=BGM_FILES[Math.floor(Math.random()*BGM_FILES.length)];AB.load();
  resize();
@@ -522,11 +527,11 @@ function completeGroups(){ var gs=findComplete();if(gs.length===0)return;
  var grp=gs[0];
  L("COMPLETE image="+grp.i+" at ("+grp.p[0].r+","+grp.p[0].c+")");
  PS={time:Date.now(),group:grp};
- SV+=100
+ SV+=5
 }
 // ===== Hint =====
 function canRelief(){
- if(RU<=0||GO)return "No uses!";
+ if(SV<50||GO)return "Score low!";
  for(var r=0;r<SZ;r++)for(var c=0;c<SZ;c++)if(!BD[r][c])return "Board has space!";
  // Check if any image has all 4 pieces on board (connected or scattered)
  var cnt={};
@@ -557,7 +562,7 @@ function findInQueue(t){
 }
 
 function useRelief(){
- if(canRelief()!==true)return;RU--;
+ if(canRelief()!==true)return;SV-=50;
  updateConns();
  var tg=null;
  for(var i=0;i<CN.length;i++){if(CN[i].n===3){var m=findMissing(CN[i]);if(m&&findInQueue(m)){tg=CN[i];break}}}
@@ -583,7 +588,7 @@ function isDone(){
 }
 
 function checkEnd(){
- if(!isDone())return;GO=true;CF_START=Date.now();AB.pause();playSound(AC2);
+ if(!isDone())return;GO=true;CF_START=Date.now();AB.pause();playSound(AC2);SV+=10*SZ;
  var colors=["#f59e0b","#ef4444","#22c55e","#3b82f6","#a855f7","#ec4899","#14b8a6","#f97316"];
  for(var i=0;i<60;i++){
   CF.push({
@@ -603,7 +608,8 @@ function checkEnd(){
 
 function updateUI(){
  SE.textContent=SV;ME.textContent=SZ+"x"+SZ;
- RB.disabled=RU<=0||GO;var hc=RB.parentElement.querySelector(".hc");if(hc)hc.textContent=RU;var rbl=RB.parentElement.querySelector(".blabel");if(rbl)rbl.textContent=T("Boom");
+ var sd=document.getElementById("scoreDisp");if(sd)sd.textContent=SV;
+ RB.disabled=SV<50||GO;var hc=RB.parentElement.querySelector(".hc");if(hc)hc.textContent="-50";var rbl=RB.parentElement.querySelector(".blabel");if(rbl)rbl.textContent=T("Boom");
  var ov=document.getElementById("endOverlay");
  if(ov){
   ov.style.display=GO?"flex":"none";
@@ -975,14 +981,14 @@ document.getElementById("restartBtn").addEventListener("click",function(){
 });
 document.getElementById("confirmYes").addEventListener("click",async function(){
  document.getElementById("confirmOverlay").style.display="none";
- await init(SZ,BN);updateTitle();if(SND)AB.play().catch(function(){})
+ saveGame();await init(SZ,BN);updateTitle();if(SND)AB.play().catch(function(){})
 });
 document.getElementById("confirmNo").addEventListener("click",function(){
  document.getElementById("confirmOverlay").style.display="none"
 });
 // Next Game button
 NB.addEventListener("click",async function(){
-  if(GO)GN++;
+  if(GO){GN++;saveGame()}
   var cfg=getGameConfig(GN);await init(cfg.sz,cfg.nq);BN=cfg.nq;
   updateTitle();
   if(SND) AB.play().catch(function(){})
@@ -1023,7 +1029,24 @@ DBB.addEventListener("click",function(){
 // Start
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js")}
 log("starting...");
-init(SZ,false);updateTitle();
+(async function(){var saved=loadSave();
+if(saved){SV=saved.sv;GN=saved.gn;SZ=saved.sz;BN=saved.bn||false;
+ var cfg=getGameConfig(GN);
+ if(cfg.sz!==SZ||cfg.nq!==BN){SZ=cfg.sz;BN=cfg.nq}
+ document.getElementById("confirmMsg").innerHTML=T("Continue?")+"<br><small>"+T("Game {n}").replace("{n}",GN)+" · "+SV+"</small>";
+ document.getElementById("confirmYes").textContent=T("Continue?");
+ document.getElementById("confirmNo").textContent=T("New Game");
+ document.getElementById("confirmOverlay").style.display="flex";
+ document.getElementById("confirmYes").onclick=async function(){
+  document.getElementById("confirmOverlay").style.display="none";
+  await init(SZ,BN);updateTitle();if(SND)AB.play().catch(function(){})
+ };
+ document.getElementById("confirmNo").onclick=async function(){
+  document.getElementById("confirmOverlay").style.display="none";
+  SV=0;GN=1;SZ=4;BN=false;localStorage.removeItem("dj_save");
+  await init(4,false);updateTitle();if(SND)AB.play().catch(function(){})
+ }
+}else{await init(SZ,false);updateTitle()}})();
 
 </script>
 
