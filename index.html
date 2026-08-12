@@ -981,7 +981,7 @@ document.getElementById("restartBtn").addEventListener("click",function(){
 });
 document.getElementById("confirmYes").addEventListener("click",async function(){
  document.getElementById("confirmOverlay").style.display="none";
- saveGame();SV=GS;await init(SZ,BN);updateTitle();if(SND)AB.play().catch(function(){})
+ SV=GS;await init(SZ,BN);updateTitle();if(SND)AB.play().catch(function(){})
 });
 document.getElementById("confirmNo").addEventListener("click",function(){
  document.getElementById("confirmOverlay").style.display="none"
@@ -1034,7 +1034,7 @@ if(saved){SV=saved.sv;GN=saved.gn;SZ=saved.sz;BN=saved.bn||false;
  var cfg=getGameConfig(GN);
  if(cfg.sz!==SZ||cfg.nq!==BN){SZ=cfg.sz;BN=cfg.nq}
  document.getElementById("confirmMsg").innerHTML=T("Continue")+"<br><small>"+T("Game {n}").replace("{n}",GN)+" · "+SV+"</small>";
- document.getElementById("confirmYes").textContent=T("Continue?");
+ document.getElementById("confirmYes").textContent=T("Continue");
  document.getElementById("confirmNo").textContent=T("New Game");
  document.getElementById("confirmOverlay").style.display="flex";
  document.getElementById("confirmYes").onclick=async function(){
