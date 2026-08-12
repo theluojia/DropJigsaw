@@ -145,7 +145,7 @@ var TBL={
 function T(k){var e=TBL[k];return e?e[LANG]||e.en:k}
 function setLang(l){LANG=l;localStorage.setItem("lang",l);updateUI();updateTitle();render()}
 function getGameConfig(gn){if(gn%10===5)return{sz:4,nq:true};if(gn%10===0)return{sz:6,nq:true};return{sz:gn%2===1?4:6,nq:false}}
-function updateTitle(){var t=document.getElementById("title");if(t){var n=GN||0;t.textContent=n>0?(BN?T("Bonus"):"")+T("Game {n}").replace("{n}",n):"Drop Jigsaw"}document.title="Drop Jigsaw - "+t.textContent}
+function updateTitle(){var t=document.getElementById("title");if(t){var n=GN||0;t.textContent=n>0?(BN?T("Bonus"):"")+T("Game {n}").replace("{n}",n):"Drop Jigsaw"}document.title="Drop Jigsaw"}
 var C=document.getElementById("c"),X=C.getContext("2d");
 var ST=document.getElementById("status"),TE=document.getElementById("toast");
 var RB=document.getElementById("rb"),NB=document.getElementById("nb"),DBB=document.getElementById("db"),SB=document.getElementById("sb"),LB=document.getElementById("lb"),LA=document.getElementById("logArea"),AD=document.getElementById("adrag"),AE=document.getElementById("aelim"),AC2=document.getElementById("acele"),AB=document.getElementById("abgm");
