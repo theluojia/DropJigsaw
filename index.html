@@ -1037,9 +1037,9 @@ if(saved){SV=saved.sv;GN=saved.gn;SZ=saved.sz;BN=saved.bn||false;
  document.getElementById("confirmYes").textContent=T("Continue");
  document.getElementById("confirmNo").textContent=T("New Game");
  document.getElementById("confirmOverlay").style.display="flex";
- document.getElementById("confirmYes").onclick=async function(){
+ GS=SV;document.getElementById("confirmYes").onclick=async function(){
   document.getElementById("confirmOverlay").style.display="none";
-  SV=GS;await init(SZ,BN);updateTitle();if(SND)AB.play().catch(function(){})
+  await init(SZ,BN);updateTitle();if(SND)AB.play().catch(function(){})
  };
  document.getElementById("confirmNo").onclick=async function(){
   document.getElementById("confirmOverlay").style.display="none";
